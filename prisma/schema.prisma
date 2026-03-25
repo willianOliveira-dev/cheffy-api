@@ -1,0 +1,352 @@
+generator client {
+  provider   = "prisma-client-js"
+  engineType = "library"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                 String         @id @default(uuid())
+  name               String
+  email              String
+  emailVerified      Boolean
+  image              String?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+
+  bio                String?        @db.VarChar(500)
+  location           String?        @db.VarChar(100)
+  websiteUrl         String?
+  isChef             Boolean        @default(false)
+  acceptsEmails      Boolean        @default(true)
+  dietaryPreferences String[]
+
+  totalRecipes       Int            @default(0)
+  totalFollowers     Int            @default(0)
+  totalFollowing     Int            @default(0)
+
+  sessions           Session[]
+  accounts           Account[]
+
+  recipes            Recipe[]
+  categories         Category[]
+  favorites          Favorite[]
+  ratings            RecipeRating[]
+  comments           Comment[]
+  following          Follow[]       @relation("Follower")
+  followers          Follow[]       @relation("Following")
+
+  @@unique([email])
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+model Follow {
+  id          String   @id @default(uuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+  follower    User     @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@map("follows")
+}
+
+model Category {
+  id          String   @id @default(uuid())
+  name        String   @unique @db.VarChar(65)
+  slug        String   @unique
+  description String?  @db.VarChar(250)
+  iconKey     String   @default("utensils") @db.VarChar(30)
+  imageUrl    String?
+  position    Int      @default(0)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  authorId    String?
+  author      User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  recipes     Recipe[]
+
+  @@index([slug])
+  @@map("categories")
+}
+
+model Ingredient {
+  id        String                    @id @default(uuid())
+  name      String                    @unique @db.VarChar(150)
+  slug      String                    @unique
+  imageUrl  String?
+  category  String?                   @db.VarChar(50)
+
+  createdAt DateTime                  @default(now())
+  updatedAt DateTime                  @updatedAt
+
+  sections  RecipeSectionIngredient[]
+
+  @@map("ingredients")
+}
+
+model Recipe {
+  id              String          @id @default(uuid())
+  title           String          @db.VarChar(150)
+  slug            String          @unique
+  description     String          @db.VarChar(500)
+  imageUrl        String?
+
+  prepTime        Int
+  cookTime        Int
+  totalTime       Int             @default(0)
+
+  yieldAmount     Int
+  yieldUnit       YieldUnit       @default(PORTIONS)
+
+  difficulty      DifficultyLevel @default(MEDIUM)
+
+  isPublished     Boolean         @default(false)
+  isFeatured      Boolean         @default(false)
+  deletedAt       DateTime?
+
+  views           Int             @default(0)
+  averageRating   Float           @default(0)
+  totalRatings    Int             @default(0)
+  totalFavorites  Int             @default(0)
+  totalComments   Int             @default(0)
+
+  nutritionalInfo Json?
+  aiTips          Json?
+
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  authorId        String
+  author          User            @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  categoryId      String
+  category        Category        @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  sections        RecipeSection[]
+  tags            RecipeTag[]
+  favorites       Favorite[]
+  ratings         RecipeRating[]
+  comments        Comment[]
+
+  @@index([slug])
+  @@index([isPublished, createdAt(sort: Desc)])
+  @@index([authorId])
+  @@index([categoryId])
+  @@map("recipes")
+}
+
+model RecipeSection {
+  id          String                    @id @default(uuid())
+  title       String                    @db.VarChar(100)
+  position    Int                       @default(0)
+
+  recipeId    String
+  recipe      Recipe                    @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+
+  ingredients RecipeSectionIngredient[]
+  steps       PreparationStep[]
+
+  @@map("recipe_sections")
+}
+
+model RecipeSectionIngredient {
+  id           String          @id @default(uuid())
+  
+  displayText  String          @db.VarChar(250)
+
+  quantity     String?         @db.VarChar(50)
+  unit         MeasurementUnit @default(UNIT)
+  notes        String?         @db.VarChar(250)
+  
+  position     Int             @default(0)
+
+  sectionId    String
+  section      RecipeSection   @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  ingredientId String
+  ingredient   Ingredient      @relation(fields: [ingredientId], references: [id], onDelete: Restrict)
+
+  @@map("recipe_section_ingredients")
+}
+
+model PreparationStep {
+  id          String        @id @default(uuid())
+  description String
+  position    Int           @default(0)
+  stepTime    Int?
+  mediaUrl    String?
+
+  sectionId   String
+  section     RecipeSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  @@map("preparation_steps")
+}
+
+model Tag {
+  id      String      @id @default(uuid())
+  name    String      @unique
+  slug    String      @unique
+  recipes RecipeTag[]
+
+  @@map("tags")
+}
+
+model RecipeTag {
+  recipeId String
+  tagId    String
+  recipe   Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  tag      Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([recipeId, tagId])
+  @@map("recipe_tags")
+}
+
+model Favorite {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+
+  userId    String
+  recipeId  String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipe    Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, recipeId])
+  @@map("favorites")
+}
+
+model RecipeRating {
+  id        String   @id @default(uuid())
+  score     Int
+  comment   String?  @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId    String
+  recipeId  String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipe    Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, recipeId])
+  @@map("recipe_ratings")
+}
+
+model Comment {
+  id        String    @id @default(uuid())
+  content   String    @db.Text
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  userId    String
+  recipeId  String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipe    Recipe    @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+
+  @@map("comments")
+}
+
+enum DifficultyLevel {
+  EASY
+  MEDIUM
+  HARD
+  EXPERT
+
+  @@map("difficulty_level")
+}
+
+enum YieldUnit {
+  PORTIONS
+  PEOPLE
+  UNITS
+  SLICES
+  PIECES
+  CUPS
+  GLASSES
+  PLATES
+  TO_TASTE
+
+  @@map("yield_unit")
+}
+
+enum MeasurementUnit {
+  G
+  KG
+  MG
+  OZ
+  LB
+  ML
+  L
+  CUP
+  TBSP
+  TSP
+  UNIT
+  DOZEN
+  PINCH
+  DRIZZLE
+  CUBE
+  PACKAGE
+  CAN
+  BOTTLE
+  BOX
+  TO_TASTE
+  CLOVE
+  BUNCH
+  GLASS
+  LEAF
+  POT
+
+  @@map("measurement_unit")
+}
