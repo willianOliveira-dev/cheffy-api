@@ -1,4 +1,7 @@
 -- CreateEnum
+CREATE TYPE "recipe_ai_insight_type" AS ENUM ('LIGHTER_VERSION', 'HIGH_PROTEIN', 'LOW_CALORIE', 'INGREDIENT_SWAP', 'GENERAL_TIPS', 'NUTRITION_EXPLANATION');
+
+-- CreateEnum
 CREATE TYPE "difficulty_level" AS ENUM ('EASY', 'MEDIUM', 'HARD', 'EXPERT');
 
 -- CreateEnum
@@ -12,19 +15,10 @@ CREATE TABLE "user" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "email" TEXT NOT NULL,
-    "emailVerified" BOOLEAN NOT NULL,
+    "emailVerified" BOOLEAN NOT NULL DEFAULT false,
     "image" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-    "bio" VARCHAR(500),
-    "location" VARCHAR(100),
-    "websiteUrl" TEXT,
-    "isChef" BOOLEAN NOT NULL DEFAULT false,
-    "acceptsEmails" BOOLEAN NOT NULL DEFAULT true,
-    "dietaryPreferences" TEXT[],
-    "totalRecipes" INTEGER NOT NULL DEFAULT 0,
-    "totalFollowers" INTEGER NOT NULL DEFAULT 0,
-    "totalFollowing" INTEGER NOT NULL DEFAULT 0,
 
     CONSTRAINT "user_pkey" PRIMARY KEY ("id")
 );
@@ -75,16 +69,6 @@ CREATE TABLE "verification" (
 );
 
 -- CreateTable
-CREATE TABLE "follows" (
-    "id" TEXT NOT NULL,
-    "followerId" TEXT NOT NULL,
-    "followingId" TEXT NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "follows_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "categories" (
     "id" TEXT NOT NULL,
     "name" VARCHAR(65) NOT NULL,
@@ -95,7 +79,6 @@ CREATE TABLE "categories" (
     "position" INTEGER NOT NULL DEFAULT 0,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-    "authorId" TEXT,
 
     CONSTRAINT "categories_pkey" PRIMARY KEY ("id")
 );
@@ -111,6 +94,27 @@ CREATE TABLE "ingredients" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "ingredients_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ingredient_nutritions" (
+    "id" TEXT NOT NULL,
+    "ingredientId" TEXT NOT NULL,
+    "energyKcalPer100g" DOUBLE PRECISION NOT NULL,
+    "carbohydratesPer100g" DOUBLE PRECISION NOT NULL,
+    "totalSugarsPer100g" DOUBLE PRECISION,
+    "addedSugarsPer100g" DOUBLE PRECISION,
+    "proteinPer100g" DOUBLE PRECISION NOT NULL,
+    "totalFatPer100g" DOUBLE PRECISION NOT NULL,
+    "saturatedFatPer100g" DOUBLE PRECISION,
+    "transFatPer100g" DOUBLE PRECISION,
+    "fiberPer100g" DOUBLE PRECISION,
+    "sodiumMgPer100g" DOUBLE PRECISION,
+    "source" VARCHAR(100),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "ingredient_nutritions_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -130,18 +134,55 @@ CREATE TABLE "recipes" (
     "isFeatured" BOOLEAN NOT NULL DEFAULT false,
     "deletedAt" TIMESTAMP(3),
     "views" INTEGER NOT NULL DEFAULT 0,
-    "averageRating" DOUBLE PRECISION NOT NULL DEFAULT 0,
-    "totalRatings" INTEGER NOT NULL DEFAULT 0,
     "totalFavorites" INTEGER NOT NULL DEFAULT 0,
-    "totalComments" INTEGER NOT NULL DEFAULT 0,
-    "nutritionalInfo" JSONB,
-    "aiTips" JSONB,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "authorId" TEXT NOT NULL,
     "categoryId" TEXT NOT NULL,
 
     CONSTRAINT "recipes_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "recipe_nutrition_labels" (
+    "id" TEXT NOT NULL,
+    "recipeId" TEXT NOT NULL,
+    "totalWeightInGrams" DOUBLE PRECISION NOT NULL,
+    "servingWeightInGrams" DOUBLE PRECISION NOT NULL,
+    "servingsPerRecipe" INTEGER,
+    "energyKcalPer100g" DOUBLE PRECISION NOT NULL,
+    "carbohydratesPer100g" DOUBLE PRECISION NOT NULL,
+    "totalSugarsPer100g" DOUBLE PRECISION,
+    "addedSugarsPer100g" DOUBLE PRECISION,
+    "proteinPer100g" DOUBLE PRECISION NOT NULL,
+    "totalFatPer100g" DOUBLE PRECISION NOT NULL,
+    "saturatedFatPer100g" DOUBLE PRECISION,
+    "transFatPer100g" DOUBLE PRECISION,
+    "fiberPer100g" DOUBLE PRECISION,
+    "sodiumMgPer100g" DOUBLE PRECISION,
+    "energyKcalPerServing" DOUBLE PRECISION NOT NULL,
+    "carbohydratesPerServing" DOUBLE PRECISION NOT NULL,
+    "totalSugarsPerServing" DOUBLE PRECISION,
+    "addedSugarsPerServing" DOUBLE PRECISION,
+    "proteinPerServing" DOUBLE PRECISION NOT NULL,
+    "totalFatPerServing" DOUBLE PRECISION NOT NULL,
+    "saturatedFatPerServing" DOUBLE PRECISION,
+    "transFatPerServing" DOUBLE PRECISION,
+    "fiberPerServing" DOUBLE PRECISION,
+    "sodiumMgPerServing" DOUBLE PRECISION,
+    "energyKcalDailyValuePercent" DOUBLE PRECISION,
+    "carbohydratesDailyValuePercent" DOUBLE PRECISION,
+    "addedSugarsDailyValuePercent" DOUBLE PRECISION,
+    "proteinDailyValuePercent" DOUBLE PRECISION,
+    "totalFatDailyValuePercent" DOUBLE PRECISION,
+    "saturatedFatDailyValuePercent" DOUBLE PRECISION,
+    "fiberDailyValuePercent" DOUBLE PRECISION,
+    "sodiumDailyValuePercent" DOUBLE PRECISION,
+    "isApproximate" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "recipe_nutrition_labels_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -159,6 +200,7 @@ CREATE TABLE "recipe_section_ingredients" (
     "id" TEXT NOT NULL,
     "displayText" VARCHAR(250) NOT NULL,
     "quantity" VARCHAR(50),
+    "quantityInGrams" DOUBLE PRECISION,
     "unit" "measurement_unit" NOT NULL DEFAULT 'UNIT',
     "notes" VARCHAR(250),
     "position" INTEGER NOT NULL DEFAULT 0,
@@ -166,6 +208,22 @@ CREATE TABLE "recipe_section_ingredients" (
     "ingredientId" TEXT NOT NULL,
 
     CONSTRAINT "recipe_section_ingredients_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "recipe_ai_insights" (
+    "id" TEXT NOT NULL,
+    "recipeId" TEXT NOT NULL,
+    "type" "recipe_ai_insight_type" NOT NULL,
+    "title" VARCHAR(120) NOT NULL,
+    "summary" VARCHAR(500) NOT NULL,
+    "suggestions" JSONB,
+    "warnings" JSONB,
+    "metadata" JSONB,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "recipe_ai_insights_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -207,32 +265,6 @@ CREATE TABLE "favorites" (
     CONSTRAINT "favorites_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
-CREATE TABLE "recipe_ratings" (
-    "id" TEXT NOT NULL,
-    "score" INTEGER NOT NULL,
-    "comment" TEXT,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-    "userId" TEXT NOT NULL,
-    "recipeId" TEXT NOT NULL,
-
-    CONSTRAINT "recipe_ratings_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "comments" (
-    "id" TEXT NOT NULL,
-    "content" TEXT NOT NULL,
-    "deletedAt" TIMESTAMP(3),
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-    "userId" TEXT NOT NULL,
-    "recipeId" TEXT NOT NULL,
-
-    CONSTRAINT "comments_pkey" PRIMARY KEY ("id")
-);
-
 -- CreateIndex
 CREATE UNIQUE INDEX "user_email_key" ON "user"("email");
 
@@ -247,9 +279,6 @@ CREATE INDEX "account_userId_idx" ON "account"("userId");
 
 -- CreateIndex
 CREATE INDEX "verification_identifier_idx" ON "verification"("identifier");
-
--- CreateIndex
-CREATE UNIQUE INDEX "follows_followerId_followingId_key" ON "follows"("followerId", "followingId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "categories_name_key" ON "categories"("name");
@@ -267,6 +296,9 @@ CREATE UNIQUE INDEX "ingredients_name_key" ON "ingredients"("name");
 CREATE UNIQUE INDEX "ingredients_slug_key" ON "ingredients"("slug");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "ingredient_nutritions_ingredientId_key" ON "ingredient_nutritions"("ingredientId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "recipes_slug_key" ON "recipes"("slug");
 
 -- CreateIndex
@@ -282,16 +314,34 @@ CREATE INDEX "recipes_authorId_idx" ON "recipes"("authorId");
 CREATE INDEX "recipes_categoryId_idx" ON "recipes"("categoryId");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "recipe_nutrition_labels_recipeId_key" ON "recipe_nutrition_labels"("recipeId");
+
+-- CreateIndex
+CREATE INDEX "recipe_section_ingredients_sectionId_idx" ON "recipe_section_ingredients"("sectionId");
+
+-- CreateIndex
+CREATE INDEX "recipe_section_ingredients_ingredientId_idx" ON "recipe_section_ingredients"("ingredientId");
+
+-- CreateIndex
+CREATE INDEX "recipe_ai_insights_recipeId_idx" ON "recipe_ai_insights"("recipeId");
+
+-- CreateIndex
+CREATE INDEX "preparation_steps_sectionId_idx" ON "preparation_steps"("sectionId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "tags_name_key" ON "tags"("name");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "tags_slug_key" ON "tags"("slug");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "favorites_userId_recipeId_key" ON "favorites"("userId", "recipeId");
+CREATE INDEX "favorites_userId_idx" ON "favorites"("userId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "recipe_ratings_userId_recipeId_key" ON "recipe_ratings"("userId", "recipeId");
+CREATE INDEX "favorites_recipeId_idx" ON "favorites"("recipeId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "favorites_userId_recipeId_key" ON "favorites"("userId", "recipeId");
 
 -- AddForeignKey
 ALTER TABLE "session" ADD CONSTRAINT "session_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -300,19 +350,16 @@ ALTER TABLE "session" ADD CONSTRAINT "session_userId_fkey" FOREIGN KEY ("userId"
 ALTER TABLE "account" ADD CONSTRAINT "account_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "follows" ADD CONSTRAINT "follows_followerId_fkey" FOREIGN KEY ("followerId") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "follows" ADD CONSTRAINT "follows_followingId_fkey" FOREIGN KEY ("followingId") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "categories" ADD CONSTRAINT "categories_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "ingredient_nutritions" ADD CONSTRAINT "ingredient_nutritions_ingredientId_fkey" FOREIGN KEY ("ingredientId") REFERENCES "ingredients"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "recipes" ADD CONSTRAINT "recipes_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "recipes" ADD CONSTRAINT "recipes_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "categories"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "recipe_nutrition_labels" ADD CONSTRAINT "recipe_nutrition_labels_recipeId_fkey" FOREIGN KEY ("recipeId") REFERENCES "recipes"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "recipe_sections" ADD CONSTRAINT "recipe_sections_recipeId_fkey" FOREIGN KEY ("recipeId") REFERENCES "recipes"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -322,6 +369,9 @@ ALTER TABLE "recipe_section_ingredients" ADD CONSTRAINT "recipe_section_ingredie
 
 -- AddForeignKey
 ALTER TABLE "recipe_section_ingredients" ADD CONSTRAINT "recipe_section_ingredients_ingredientId_fkey" FOREIGN KEY ("ingredientId") REFERENCES "ingredients"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "recipe_ai_insights" ADD CONSTRAINT "recipe_ai_insights_recipeId_fkey" FOREIGN KEY ("recipeId") REFERENCES "recipes"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "preparation_steps" ADD CONSTRAINT "preparation_steps_sectionId_fkey" FOREIGN KEY ("sectionId") REFERENCES "recipe_sections"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -337,15 +387,3 @@ ALTER TABLE "favorites" ADD CONSTRAINT "favorites_userId_fkey" FOREIGN KEY ("use
 
 -- AddForeignKey
 ALTER TABLE "favorites" ADD CONSTRAINT "favorites_recipeId_fkey" FOREIGN KEY ("recipeId") REFERENCES "recipes"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "recipe_ratings" ADD CONSTRAINT "recipe_ratings_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "recipe_ratings" ADD CONSTRAINT "recipe_ratings_recipeId_fkey" FOREIGN KEY ("recipeId") REFERENCES "recipes"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "comments" ADD CONSTRAINT "comments_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "comments" ADD CONSTRAINT "comments_recipeId_fkey" FOREIGN KEY ("recipeId") REFERENCES "recipes"("id") ON DELETE CASCADE ON UPDATE CASCADE;

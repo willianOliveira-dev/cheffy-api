@@ -16,8 +16,8 @@
         "db:studio": "pnpm exec dotenv -e .env -- prisma studio"
     },
     "engines": {
-        "node": ">=24.14.0",
-        "pnpm": ">=10.30.3"
+        "node": ">=22.0.0",
+        "pnpm": ">=9.0.0"
     },
     "dependencies": {
         "@hono/node-server": "^1.19.11",
