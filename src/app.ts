@@ -4,6 +4,7 @@ import { timing } from 'hono/timing'
 import { secureHeaders } from 'hono/secure-headers'
 import { env } from './config/env.js'
 import { logger } from 'hono/logger'
+import { registerRoutes } from './modules/root.routes.js'
 import pino from 'pino'
 
 export function bootstrapApp() {
@@ -21,6 +22,8 @@ export function bootstrapApp() {
     allowHeaders: ['Content-Type', "Authorization", "Cookie"],
     credentials: true,
   }))
+
+  registerRoutes(app)
 
   return app
 }
