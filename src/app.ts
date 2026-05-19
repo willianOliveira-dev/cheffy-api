@@ -7,6 +7,7 @@ import { logger } from 'hono/logger'
 import pino from 'pino'
 
 export function bootstrapApp() {
+  
   const app = new OpenAPIHono()
 
   const pinoLogger = pino(env.NODE_ENV === "development" ? { transport: { target: 'pino-pretty' } } : undefined)
