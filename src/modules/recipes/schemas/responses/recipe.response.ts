@@ -88,7 +88,7 @@ export const recipeSectionIngredientResponseSchema = z.object({
     id: z.string().uuid(),
     displayText: z.string(),
     quantity: z.string().nullable(),
-    quantityInGrams: z.number().nullable(),
+    quantityInGrams: z.number(),
     unit: z.nativeEnum(MeasurementUnit),
     notes: z.string().nullable(),
     position: z.number(),

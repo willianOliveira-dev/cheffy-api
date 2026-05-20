@@ -64,7 +64,7 @@ export class NutritionCalculatorService {
             if (!section.ingredients) continue;
 
             for (const ingredient of section.ingredients) {
-                if (!ingredient.quantityInGrams || !ingredient.ingredientId) {
+                if (!ingredient.ingredientId) {
                     continue;
                 }
 

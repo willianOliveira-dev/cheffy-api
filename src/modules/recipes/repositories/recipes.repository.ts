@@ -31,7 +31,7 @@ export class RecipesRepository {
                             create: section.ingredients.map(ing => ({
                                 displayText: ing.displayText,
                                 quantity: ing.quantity ?? null,
-                                quantityInGrams: ing.quantityInGrams ?? null,
+                                quantityInGrams: ing.quantityInGrams,
                                 unit: ing.unit,
                                 notes: ing.notes ?? null,
                                 position: ing.position,
@@ -241,7 +241,7 @@ export class RecipesRepository {
                         create: section.ingredients.map(ing => ({
                             displayText: ing.displayText,
                             quantity: ing.quantity ?? null,
-                            quantityInGrams: ing.quantityInGrams ?? null,
+                            quantityInGrams: ing.quantityInGrams,
                             unit: ing.unit,
                             notes: ing.notes ?? null,
                             position: ing.position,
