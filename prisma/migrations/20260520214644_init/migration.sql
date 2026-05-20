@@ -200,7 +200,7 @@ CREATE TABLE "recipe_section_ingredients" (
     "id" TEXT NOT NULL,
     "displayText" VARCHAR(250) NOT NULL,
     "quantity" VARCHAR(50),
-    "quantityInGrams" DOUBLE PRECISION,
+    "quantityInGrams" DOUBLE PRECISION NOT NULL,
     "unit" "measurement_unit" NOT NULL DEFAULT 'UNIT',
     "notes" VARCHAR(250),
     "position" INTEGER NOT NULL DEFAULT 0,

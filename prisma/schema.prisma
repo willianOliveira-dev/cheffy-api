@@ -253,7 +253,7 @@ model RecipeSectionIngredient {
   displayText String @db.VarChar(250)
 
   quantity        String? @db.VarChar(50)
-  quantityInGrams Float?
+  quantityInGrams Float
 
   unit MeasurementUnit @default(UNIT)
 
