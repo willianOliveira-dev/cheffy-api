@@ -3,17 +3,18 @@ import { cors } from 'hono/cors'
 import { timing } from 'hono/timing'
 import { secureHeaders } from 'hono/secure-headers'
 import { env } from './config/env.js'
-import { logger } from 'hono/logger'
+import { logger as honoLogger } from 'hono/logger'
 import { registerRoutes } from './modules/root.routes.js'
-import pino from 'pino'
+import { logger } from './shared/utils/logger.util.js'
+import { defaultValidationHook } from './hooks/validation.hook.js'
 
 export function bootstrapApp() {
   
-  const app = new OpenAPIHono()
+  const app = new OpenAPIHono({
+    defaultHook: defaultValidationHook
+  })
 
-  const pinoLogger = pino(env.NODE_ENV === "development" ? { transport: { target: 'pino-pretty' } } : undefined)
-
-  app.use("*", logger((message, ...rest) => { pinoLogger.info({ context: 'http', rest: rest.length > 0 ? rest : undefined }, message);}));
+  app.use("*", honoLogger((message, ...rest) => { logger.info({ context: 'http', rest: rest.length > 0 ? rest : undefined }, message);}));
   app.use("*", timing())
   app.use("*", secureHeaders())
   app.use("*", cors({

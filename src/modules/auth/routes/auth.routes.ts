@@ -1,7 +1,7 @@
 import { auth } from '@/lib/auth/auth.lib.js'
-import { OpenAPIHono } from '@hono/zod-openapi'
+import { createRouter } from '@/shared/utils/router.util.js'
 
-export const authRoutes = new OpenAPIHono()
+export const authRoutes = createRouter()
 
 authRoutes.all("/api/auth/*", async (c) => auth.handler(c.req.raw))
 
