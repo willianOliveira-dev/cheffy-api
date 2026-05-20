@@ -13,7 +13,8 @@
         "prepare": "husky",
         "db:generate": "pnpm exec dotenv -e .env -- prisma generate",
         "db:migrate": "pnpm exec dotenv -e .env -- prisma migrate dev",
-        "db:studio": "pnpm exec dotenv -e .env -- prisma studio"
+        "db:studio": "pnpm exec dotenv -e .env -- prisma studio",
+        "db:reset": "pnpm exec dotenv -e .env -- prisma migrate reset"
     },
     "engines": {
         "node": ">=22.0.0",
