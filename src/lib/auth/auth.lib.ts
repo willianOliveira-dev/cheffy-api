@@ -11,6 +11,7 @@ export const auth = betterAuth({
     trustedOrigins: env.ALLOWED_ORIGINS,
     advanced: {
         disableOriginCheck: env.NODE_ENV !== 'production',
+        disableCSRFCheck: env.NODE_ENV !== "production"
     },
     socialProviders: {
         google: {

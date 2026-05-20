@@ -7,6 +7,7 @@ import { logger as honoLogger } from 'hono/logger'
 import { registerRoutes } from './modules/root.routes.js'
 import { logger } from './shared/utils/logger.util.js'
 import { defaultValidationHook } from './hooks/validation.hook.js'
+import { errorHandler } from './global/error-handler.global.js'
 
 export function bootstrapApp() {
   
@@ -14,6 +15,7 @@ export function bootstrapApp() {
     defaultHook: defaultValidationHook
   })
 
+  app.onError(errorHandler)
   app.use("*", honoLogger((message, ...rest) => { logger.info({ context: 'http', rest: rest.length > 0 ? rest : undefined }, message);}));
   app.use("*", timing())
   app.use("*", secureHeaders())
