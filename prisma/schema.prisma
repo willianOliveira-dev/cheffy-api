@@ -118,16 +118,16 @@ model IngredientNutrition {
   ingredientId String @unique
   ingredient   Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
 
-  energyKcalPer100g    Float
-  carbohydratesPer100g Float
-  totalSugarsPer100g   Float?
-  addedSugarsPer100g   Float?
-  proteinPer100g       Float
-  totalFatPer100g      Float
-  saturatedFatPer100g  Float?
-  transFatPer100g      Float?
-  fiberPer100g         Float?
-  sodiumMgPer100g      Float?
+  energyKcalPer100g    Float @default(0)
+  carbohydratesPer100g Float @default(0)
+  totalSugarsPer100g   Float @default(0)
+  addedSugarsPer100g   Float @default(0)
+  proteinPer100g       Float @default(0)
+  totalFatPer100g      Float @default(0)
+  saturatedFatPer100g  Float @default(0)
+  transFatPer100g      Float @default(0)
+  fiberPer100g         Float @default(0)
+  sodiumMgPer100g      Float @default(0)
 
   source String? @db.VarChar(100)
 

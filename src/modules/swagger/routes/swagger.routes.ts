@@ -8,8 +8,7 @@ export function swaggerRoutes(app: OpenAPIHono) {
 		info: {
 			title: 'Cheffy API',
 			version: env.API_VERSION,
-			description:
-				'',
+			description: '',
 		},
 		servers: [
 			{
