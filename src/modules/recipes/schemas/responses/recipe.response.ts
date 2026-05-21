@@ -167,7 +167,6 @@ export const recipeSummaryResponseSchema = z
 
 export const recipeListResponseSchema = z.array(recipeSummaryResponseSchema).openapi('RecipeList');
 
-// Paginated response schema for recipe list
 export const paginatedRecipeListResponseSchema = z
 	.object({
 		items: z.array(recipeSummaryResponseSchema),
