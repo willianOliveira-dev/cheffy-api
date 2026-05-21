@@ -10,8 +10,6 @@ export class UsersRepository {
 				email: true,
 				emailVerified: true,
 				image: true,
-				createdAt: true,
-				updatedAt: true,
 			},
 		});
 	}

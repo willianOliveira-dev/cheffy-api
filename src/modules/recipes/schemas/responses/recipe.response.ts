@@ -20,8 +20,6 @@ const categoryResponseSchema = z.object({
 	iconKey: z.string(),
 	imageUrl: z.string().nullable(),
 	position: z.number(),
-	createdAt: z.union([z.string(), z.date()]).openapi({ type: 'string', format: 'date-time' }),
-	updatedAt: z.union([z.string(), z.date()]).openapi({ type: 'string', format: 'date-time' }),
 });
 
 const tagSummarySchema = z.object({
@@ -80,8 +78,6 @@ const nutritionLabelResponseSchema = z.object({
 	fiberDailyValuePercent: z.number().nullable(),
 	sodiumDailyValuePercent: z.number().nullable(),
 	isApproximate: z.boolean(),
-	createdAt: z.union([z.string(), z.date()]).openapi({ type: 'string', format: 'date-time' }),
-	updatedAt: z.union([z.string(), z.date()]).openapi({ type: 'string', format: 'date-time' }),
 });
 
 export const recipeSectionIngredientResponseSchema = z
@@ -102,8 +98,6 @@ export const recipeSectionIngredientResponseSchema = z
 				slug: z.string(),
 				imageUrl: z.string().nullable(),
 				category: z.string().nullable(),
-				createdAt: z.union([z.string(), z.date()]).openapi({ type: 'string', format: 'date-time' }),
-				updatedAt: z.union([z.string(), z.date()]).openapi({ type: 'string', format: 'date-time' }),
 			})
 			.optional(),
 	})
@@ -150,8 +144,6 @@ const baseRecipeSchema = {
 		.union([z.string(), z.date()])
 		.nullable()
 		.openapi({ type: 'string', format: 'date-time' }),
-	createdAt: z.union([z.string(), z.date()]).openapi({ type: 'string', format: 'date-time' }),
-	updatedAt: z.union([z.string(), z.date()]).openapi({ type: 'string', format: 'date-time' }),
 	authorId: z.string().uuid(),
 	categoryId: z.string().uuid(),
 	isFavorited: z.boolean().optional(),

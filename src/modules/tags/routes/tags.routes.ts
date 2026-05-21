@@ -148,32 +148,32 @@ const deleteTagRoute = createRoute({
 tagsRoutes.openapi(getTagsRoute, async (c) => {
 	const query = c.req.valid('query');
 	const result = await tagsController.getAll(query);
-	return c.json(result, 200);
+	return c.json(paginatedTagListResponseSchema.parse(result), 200);
 });
 
 tagsRoutes.openapi(getTagByIdRoute, async (c) => {
 	const { id } = c.req.valid('param');
 	const result = await tagsController.getById(id);
-	return c.json(result, 200);
+	return c.json(tagResponseSchema.parse(result), 200);
 });
 
 tagsRoutes.openapi(getTagBySlugRoute, async (c) => {
 	const { slug } = c.req.valid('param');
 	const result = await tagsController.getBySlug(slug);
-	return c.json(result, 200);
+	return c.json(tagResponseSchema.parse(result), 200);
 });
 
 tagsRoutes.openapi(createTagRoute, async (c) => {
 	const data = c.req.valid('json');
 	const result = await tagsController.create(data);
-	return c.json(result, 201);
+	return c.json(tagResponseSchema.parse(result), 201);
 });
 
 tagsRoutes.openapi(updateTagRoute, async (c) => {
 	const { id } = c.req.valid('param');
 	const data = c.req.valid('json');
 	const result = await tagsController.update(id, data);
-	return c.json(result, 200);
+	return c.json(tagResponseSchema.parse(result), 200);
 });
 
 tagsRoutes.openapi(deleteTagRoute, async (c) => {

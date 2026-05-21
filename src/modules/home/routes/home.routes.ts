@@ -51,12 +51,12 @@ const getCategoryRecipesRoute = createRoute({
 
 homeRoutes.openapi(getHomeRoute, async (c) => {
 	const result = await homeController.getHome();
-	return c.json(result, 200);
+	return c.json(homeResponseSchema.parse(result), 200);
 });
 
 homeRoutes.openapi(getCategoryRecipesRoute, async (c) => {
 	const { slug } = c.req.valid('param');
 	const query = c.req.valid('query');
 	const result = await homeController.getCategoryRecipes(slug, query);
-	return c.json(result, 200);
+	return c.json(homeCategoryRecipesResponseSchema.parse(result), 200);
 });

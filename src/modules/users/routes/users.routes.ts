@@ -48,11 +48,11 @@ const getMyFavoriteRecipesRoute = createRoute({
 usersRoutes.openapi(getMeRoute, async (c) => {
 	const { user } = c.get('session');
 	const result = await usersController.getMe(user.id);
-	return c.json(result, 200);
+	return c.json(userResponseSchema.parse(result), 200);
 });
 
 usersRoutes.openapi(getMyFavoriteRecipesRoute, async (c) => {
 	const { user } = c.get('session');
 	const result = await usersController.getFavoriteRecipes(user.id);
-	return c.json(result, 200);
+	return c.json(userFavoriteRecipesResponseSchema.parse(result), 200);
 });

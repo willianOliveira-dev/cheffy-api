@@ -8,8 +8,6 @@ export const userResponseSchema = z
 		email: z.string().email(),
 		emailVerified: z.boolean(),
 		image: z.string().nullable(),
-		createdAt: z.union([z.string(), z.date()]).openapi({ type: 'string', format: 'date-time' }),
-		updatedAt: z.union([z.string(), z.date()]).openapi({ type: 'string', format: 'date-time' }),
 	})
 	.openapi('User');
 

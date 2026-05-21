@@ -209,26 +209,26 @@ const updateIngredientNutritionRoute = createRoute({
 ingredientsRoutes.openapi(getIngredientsRoute, async (c) => {
 	const query = c.req.valid('query');
 	const result = await ingredientsController.getAll(query);
-	return c.json(result, 200);
+	return c.json(paginatedIngredientListResponseSchema.parse(result), 200);
 });
 
 ingredientsRoutes.openapi(getIngredientByIdRoute, async (c) => {
 	const { id } = c.req.valid('param');
 	const result = await ingredientsController.getById(id);
-	return c.json(result, 200);
+	return c.json(ingredientResponseSchema.parse(result), 200);
 });
 
 ingredientsRoutes.openapi(createIngredientRoute, async (c) => {
 	const data = c.req.valid('json');
 	const result = await ingredientsController.create(data);
-	return c.json(result, 201);
+	return c.json(ingredientResponseSchema.parse(result), 201);
 });
 
 ingredientsRoutes.openapi(updateIngredientRoute, async (c) => {
 	const { id } = c.req.valid('param');
 	const data = c.req.valid('json');
 	const result = await ingredientsController.update(id, data);
-	return c.json(result, 200);
+	return c.json(ingredientResponseSchema.parse(result), 200);
 });
 
 ingredientsRoutes.openapi(deleteIngredientRoute, async (c) => {
@@ -240,19 +240,19 @@ ingredientsRoutes.openapi(deleteIngredientRoute, async (c) => {
 ingredientsRoutes.openapi(getIngredientNutritionRoute, async (c) => {
 	const { id } = c.req.valid('param');
 	const result = await ingredientsController.getNutrition(id);
-	return c.json(result, 200);
+	return c.json(ingredientNutritionResponseSchema.parse(result), 200);
 });
 
 ingredientsRoutes.openapi(upsertIngredientNutritionRoute, async (c) => {
 	const { id } = c.req.valid('param');
 	const data = c.req.valid('json');
 	const result = await ingredientsController.upsertNutrition(id, data);
-	return c.json(result, 200);
+	return c.json(ingredientNutritionResponseSchema.parse(result), 200);
 });
 
 ingredientsRoutes.openapi(updateIngredientNutritionRoute, async (c) => {
 	const { id } = c.req.valid('param');
 	const data = c.req.valid('json');
 	const result = await ingredientsController.updateNutrition(id, data);
-	return c.json(result, 200);
+	return c.json(ingredientNutritionResponseSchema.parse(result), 200);
 });

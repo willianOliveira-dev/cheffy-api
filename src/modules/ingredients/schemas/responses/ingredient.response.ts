@@ -15,8 +15,6 @@ export const ingredientNutritionResponseSchema = z
 		fiberPer100g: z.number().nullable(),
 		sodiumMgPer100g: z.number().nullable(),
 		source: z.string().nullable(),
-		createdAt: z.union([z.string(), z.date()]).openapi({ type: 'string', format: 'date-time' }),
-		updatedAt: z.union([z.string(), z.date()]).openapi({ type: 'string', format: 'date-time' }),
 	})
 	.openapi('IngredientNutrition');
 
@@ -27,8 +25,6 @@ export const ingredientResponseSchema = z
 		slug: z.string(),
 		imageUrl: z.string().nullable(),
 		category: z.string().nullable(),
-		createdAt: z.union([z.string(), z.date()]).openapi({ type: 'string', format: 'date-time' }),
-		updatedAt: z.union([z.string(), z.date()]).openapi({ type: 'string', format: 'date-time' }),
 		nutrition: ingredientNutritionResponseSchema.nullable().optional(),
 	})
 	.openapi('Ingredient');

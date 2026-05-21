@@ -148,32 +148,32 @@ const deleteCategoryRoute = createRoute({
 categoriesRoutes.openapi(getCategoriesRoute, async (c) => {
 	const query = c.req.valid('query');
 	const result = await categoriesController.getAll(query);
-	return c.json(result, 200);
+	return c.json(paginatedCategoryListResponseSchema.parse(result), 200);
 });
 
 categoriesRoutes.openapi(getCategoryByIdRoute, async (c) => {
 	const { id } = c.req.valid('param');
 	const result = await categoriesController.getById(id);
-	return c.json(result, 200);
+	return c.json(categoryResponseSchema.parse(result), 200);
 });
 
 categoriesRoutes.openapi(getCategoryBySlugRoute, async (c) => {
 	const { slug } = c.req.valid('param');
 	const result = await categoriesController.getBySlug(slug);
-	return c.json(result, 200);
+	return c.json(categoryResponseSchema.parse(result), 200);
 });
 
 categoriesRoutes.openapi(createCategoryRoute, async (c) => {
 	const data = c.req.valid('json');
 	const result = await categoriesController.create(data);
-	return c.json(result, 201);
+	return c.json(categoryResponseSchema.parse(result), 201);
 });
 
 categoriesRoutes.openapi(updateCategoryRoute, async (c) => {
 	const { id } = c.req.valid('param');
 	const data = c.req.valid('json');
 	const result = await categoriesController.update(id, data);
-	return c.json(result, 200);
+	return c.json(categoryResponseSchema.parse(result), 200);
 });
 
 categoriesRoutes.openapi(deleteCategoryRoute, async (c) => {

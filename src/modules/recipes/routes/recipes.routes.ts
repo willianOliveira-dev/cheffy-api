@@ -210,7 +210,7 @@ const unfavoriteRecipeRoute = createRoute({
 recipesRoutes.openapi(getRecipesRoute, async (c) => {
 	const query = c.req.valid('query');
 	const recipes = await recipesController.getAll(query);
-	return c.json(recipes, 200);
+	return c.json(paginatedRecipeListResponseSchema.parse(recipes), 200);
 });
 
 recipesRoutes.openapi(getRecipeByIdRoute, async (c) => {
@@ -219,7 +219,7 @@ recipesRoutes.openapi(getRecipeByIdRoute, async (c) => {
 		headers: c.req.raw.headers,
 	});
 	const recipe = await recipesController.getById(id, getRecipeViewContext(c, session?.user.id));
-	return c.json(recipe, 200);
+	return c.json(recipeResponseSchema.parse(recipe), 200);
 });
 
 recipesRoutes.openapi(getRecipeBySlugRoute, async (c) => {
@@ -228,21 +228,21 @@ recipesRoutes.openapi(getRecipeBySlugRoute, async (c) => {
 		headers: c.req.raw.headers,
 	});
 	const recipe = await recipesController.getBySlug(slug, getRecipeViewContext(c, session?.user.id));
-	return c.json(recipe, 200);
+	return c.json(recipeResponseSchema.parse(recipe), 200);
 });
 
 recipesRoutes.openapi(createRecipeRoute, async (c) => {
 	const data = c.req.valid('json');
 	const { user } = c.get('session');
 	const recipe = await recipesController.create(data, user.id);
-	return c.json(recipe, 201);
+	return c.json(recipeResponseSchema.parse(recipe), 201);
 });
 
 recipesRoutes.openapi(updateRecipeRoute, async (c) => {
 	const { id } = c.req.valid('param');
 	const data = c.req.valid('json');
 	const recipe = await recipesController.update(id, data);
-	return c.json(recipe, 200);
+	return c.json(recipeResponseSchema.parse(recipe), 200);
 });
 
 recipesRoutes.openapi(deleteRecipeRoute, async (c) => {
@@ -255,14 +255,14 @@ recipesRoutes.openapi(favoriteRecipeRoute, async (c) => {
 	const { id } = c.req.valid('param');
 	const { user } = c.get('session');
 	const recipe = await recipesController.favorite(id, user.id);
-	return c.json(recipe, 200);
+	return c.json(recipeResponseSchema.parse(recipe), 200);
 });
 
 recipesRoutes.openapi(unfavoriteRecipeRoute, async (c) => {
 	const { id } = c.req.valid('param');
 	const { user } = c.get('session');
 	const recipe = await recipesController.unfavorite(id, user.id);
-	return c.json(recipe, 200);
+	return c.json(recipeResponseSchema.parse(recipe), 200);
 });
 
 function getRecipeViewContext(c: Context, userId?: string): RecipeViewContext {

@@ -9,14 +9,10 @@ export const categoryResponseSchema = z
 		iconKey: z.string(),
 		imageUrl: z.string().nullable(),
 		position: z.number(),
-		createdAt: z.union([z.string(), z.date()]).openapi({ type: 'string', format: 'date-time' }),
-		updatedAt: z.union([z.string(), z.date()]).openapi({ type: 'string', format: 'date-time' }),
 	})
 	.openapi('Category');
 
-export const categoryListResponseSchema = z
-	.array(categoryResponseSchema)
-	.openapi('CategoryList');
+export const categoryListResponseSchema = z.array(categoryResponseSchema).openapi('CategoryList');
 
 export const paginatedCategoryListResponseSchema = z
 	.object({
