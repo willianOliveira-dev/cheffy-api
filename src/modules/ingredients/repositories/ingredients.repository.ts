@@ -100,27 +100,27 @@ export class IngredientsRepository {
 				ingredientId,
 				energyKcalPer100g: data.energyKcalPer100g,
 				carbohydratesPer100g: data.carbohydratesPer100g,
-				totalSugarsPer100g: data.totalSugarsPer100g ?? null,
-				addedSugarsPer100g: data.addedSugarsPer100g ?? null,
+				totalSugarsPer100g: data.totalSugarsPer100g ?? 0,
+				addedSugarsPer100g: data.addedSugarsPer100g ?? 0,
 				proteinPer100g: data.proteinPer100g,
 				totalFatPer100g: data.totalFatPer100g,
-				saturatedFatPer100g: data.saturatedFatPer100g ?? null,
-				transFatPer100g: data.transFatPer100g ?? null,
-				fiberPer100g: data.fiberPer100g ?? null,
-				sodiumMgPer100g: data.sodiumMgPer100g ?? null,
+				saturatedFatPer100g: data.saturatedFatPer100g ?? 0,
+				transFatPer100g: data.transFatPer100g ?? 0,
+				fiberPer100g: data.fiberPer100g ?? 0,
+				sodiumMgPer100g: data.sodiumMgPer100g ?? 0,
 				source: data.source ?? null,
 			},
 			update: {
 				energyKcalPer100g: data.energyKcalPer100g,
 				carbohydratesPer100g: data.carbohydratesPer100g,
-				totalSugarsPer100g: data.totalSugarsPer100g ?? null,
-				addedSugarsPer100g: data.addedSugarsPer100g ?? null,
+				totalSugarsPer100g: data.totalSugarsPer100g ?? 0,
+				addedSugarsPer100g: data.addedSugarsPer100g ?? 0,
 				proteinPer100g: data.proteinPer100g,
 				totalFatPer100g: data.totalFatPer100g,
-				saturatedFatPer100g: data.saturatedFatPer100g ?? null,
-				transFatPer100g: data.transFatPer100g ?? null,
-				fiberPer100g: data.fiberPer100g ?? null,
-				sodiumMgPer100g: data.sodiumMgPer100g ?? null,
+				saturatedFatPer100g: data.saturatedFatPer100g ?? 0,
+				transFatPer100g: data.transFatPer100g ?? 0,
+				fiberPer100g: data.fiberPer100g ?? 0,
+				sodiumMgPer100g: data.sodiumMgPer100g ?? 0,
 				source: data.source ?? null,
 			},
 		});
@@ -132,16 +132,16 @@ export class IngredientsRepository {
 		if (data.carbohydratesPer100g !== undefined)
 			updateData.carbohydratesPer100g = data.carbohydratesPer100g;
 		if (data.totalSugarsPer100g !== undefined)
-			updateData.totalSugarsPer100g = data.totalSugarsPer100g;
+			updateData.totalSugarsPer100g = data.totalSugarsPer100g ?? 0;
 		if (data.addedSugarsPer100g !== undefined)
-			updateData.addedSugarsPer100g = data.addedSugarsPer100g;
+			updateData.addedSugarsPer100g = data.addedSugarsPer100g ?? 0;
 		if (data.proteinPer100g !== undefined) updateData.proteinPer100g = data.proteinPer100g;
 		if (data.totalFatPer100g !== undefined) updateData.totalFatPer100g = data.totalFatPer100g;
 		if (data.saturatedFatPer100g !== undefined)
-			updateData.saturatedFatPer100g = data.saturatedFatPer100g;
-		if (data.transFatPer100g !== undefined) updateData.transFatPer100g = data.transFatPer100g;
-		if (data.fiberPer100g !== undefined) updateData.fiberPer100g = data.fiberPer100g;
-		if (data.sodiumMgPer100g !== undefined) updateData.sodiumMgPer100g = data.sodiumMgPer100g;
+			updateData.saturatedFatPer100g = data.saturatedFatPer100g ?? 0;
+		if (data.transFatPer100g !== undefined) updateData.transFatPer100g = data.transFatPer100g ?? 0;
+		if (data.fiberPer100g !== undefined) updateData.fiberPer100g = data.fiberPer100g ?? 0;
+		if (data.sodiumMgPer100g !== undefined) updateData.sodiumMgPer100g = data.sodiumMgPer100g ?? 0;
 		if (data.source !== undefined) updateData.source = data.source;
 
 		return await this.db.ingredientNutrition.update({

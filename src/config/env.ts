@@ -14,7 +14,6 @@ export const envSchema = z.object({
 	GOOGLE_CLIENT_SECRET: z.string(),
 	BETTER_AUTH_URL: z.string(),
 	BETTER_AUTH_SECRET: z.string(),
-	GROQ_API_KEY: z.string(),
 	FRONTEND_URL: z.string(),
 });
 

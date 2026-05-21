@@ -4,6 +4,7 @@ import { categoriesRoutes } from './categories/routes/categories.routes.js';
 import { ingredientsRoutes } from './ingredients/routes/ingredients.routes.js';
 import { recipesRoutes } from './recipes/routes/recipes.routes.js';
 import { swaggerRoutes } from './swagger/routes/swagger.routes.js';
+import { tagsRoutes } from './tags/routes/tags.routes.js';
 
 export function registerRoutes(app: OpenAPIHono) {
 	const basePath = '/api/v1';
@@ -12,6 +13,7 @@ export function registerRoutes(app: OpenAPIHono) {
 	app.route(basePath, recipesRoutes);
 	app.route(basePath, ingredientsRoutes);
 	app.route(basePath, categoriesRoutes);
+	app.route(basePath, tagsRoutes);
 
 	swaggerRoutes(app);
 }

@@ -160,8 +160,6 @@ model Recipe {
   views          Int @default(0)
   totalFavorites Int @default(0)
 
-  aiTips RecipeAiInsight[]
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -269,39 +267,6 @@ model RecipeSectionIngredient {
   @@index([sectionId])
   @@index([ingredientId])
   @@map("recipe_section_ingredients")
-}
-
-
-model RecipeAiInsight {
-  id String @id @default(uuid())
-
-  recipeId String
-  recipe   Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
-
-  type RecipeAiInsightType
-
-  title       String @db.VarChar(120)
-  summary     String @db.VarChar(500)
-  suggestions Json?
-  warnings    Json?
-  metadata    Json?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([recipeId])
-  @@map("recipe_ai_insights")
-}
-
-enum RecipeAiInsightType {
-  LIGHTER_VERSION
-  HIGH_PROTEIN
-  LOW_CALORIE
-  INGREDIENT_SWAP
-  GENERAL_TIPS
-  NUTRITION_EXPLANATION
-
-  @@map("recipe_ai_insight_type")
 }
 
 
