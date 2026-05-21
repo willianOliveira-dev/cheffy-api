@@ -19,6 +19,7 @@ model User {
 
   recipes       Recipe[]
   favorites     Favorite[]
+  recipeViews   RecipeView[]
 
   sessions      Session[]
   accounts      Account[]
@@ -172,6 +173,7 @@ model Recipe {
   sections       RecipeSection[]
   tags           RecipeTag[]
   favorites      Favorite[]
+  recipeViews    RecipeView[]
   nutritionLabel RecipeNutritionLabel?
 
   @@index([slug])
@@ -319,6 +321,26 @@ model Favorite {
   @@index([userId])
   @@index([recipeId])
   @@map("favorites")
+}
+
+model RecipeView {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+
+  recipeId String
+  recipe   Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  visitorId String?
+  ipHash    String?
+  userAgent String?
+
+  @@index([recipeId, createdAt])
+  @@index([userId, createdAt])
+  @@index([visitorId, createdAt])
+  @@map("recipe_views")
 }
 
 enum DifficultyLevel {

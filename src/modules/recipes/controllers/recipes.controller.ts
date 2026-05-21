@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/db/prisma.js';
-import { RecipesRepository } from '../repositories/recipes.repository.js';
+import { type RecipeViewContext, RecipesRepository } from '../repositories/recipes.repository.js';
 import type { CreateRecipeDto } from '../schemas/dtos/create-recipe.dto.js';
 import type { FindAllRecipesDto } from '../schemas/dtos/find-all-recipes.dto.js';
 import type { UpdateRecipeDto } from '../schemas/dtos/update-recipe.dto.js';
@@ -21,12 +21,18 @@ export class RecipesController {
 		return await this.service.getAll(query);
 	}
 
-	async getById(id: string, userId?: string): ReturnType<RecipesService['getById']> {
-		return await this.service.getById(id, userId);
+	async getById(
+		id: string,
+		viewContext?: RecipeViewContext,
+	): ReturnType<RecipesService['getById']> {
+		return await this.service.getById(id, viewContext);
 	}
 
-	async getBySlug(slug: string): ReturnType<RecipesService['getBySlug']> {
-		return await this.service.getBySlug(slug);
+	async getBySlug(
+		slug: string,
+		viewContext?: RecipeViewContext,
+	): ReturnType<RecipesService['getBySlug']> {
+		return await this.service.getBySlug(slug, viewContext);
 	}
 
 	async update(id: string, data: UpdateRecipeDto): ReturnType<RecipesService['update']> {

@@ -9,6 +9,15 @@ import {
 } from '../schemas/dtos/find-all-recipes.dto.js';
 import type { UpdateRecipeDto } from '../schemas/dtos/update-recipe.dto.js';
 
+export type RecipeViewContext = {
+	userId?: string;
+	visitorId?: string;
+	ipHash?: string;
+	userAgent?: string;
+};
+
+const RECIPE_VIEW_INTERVAL_IN_MS = 24 * 60 * 60 * 1000;
+
 export class RecipesRepository {
 	async create(
 		dto: CreateRecipeDto,
@@ -79,7 +88,7 @@ export class RecipesRepository {
 			},
 		});
 	}
-	async findById(id: string, userId?: string) {
+	async findById(id: string, viewContext?: RecipeViewContext) {
 		const recipe = await prisma.recipe.findUnique({
 			where: { id },
 			include: {
@@ -100,25 +109,16 @@ export class RecipesRepository {
 
 		if (!recipe) return null;
 
-		if (!userId) {
-			return { ...recipe, isFavorited: false };
-		}
+		const [isFavorited, updatedViews] = await Promise.all([
+			this.isFavorited(recipe.id, viewContext?.userId),
+			this.registerView(recipe.id, viewContext),
+		]);
 
-		const favorite = await prisma.favorite.findUnique({
-			where: {
-				userId_recipeId: {
-					userId,
-					recipeId: id,
-				},
-			},
-			select: { id: true },
-		});
-
-		return { ...recipe, isFavorited: Boolean(favorite) };
+		return { ...recipe, views: updatedViews ?? recipe.views, isFavorited };
 	}
 
-	async findBySlug(slug: string) {
-		return await prisma.recipe.findUnique({
+	async findBySlug(slug: string, viewContext?: RecipeViewContext) {
+		const recipe = await prisma.recipe.findUnique({
 			where: { slug },
 			include: {
 				sections: {
@@ -135,6 +135,15 @@ export class RecipesRepository {
 				nutritionLabel: true,
 			},
 		});
+
+		if (!recipe) return null;
+
+		const [isFavorited, updatedViews] = await Promise.all([
+			this.isFavorited(recipe.id, viewContext?.userId),
+			this.registerView(recipe.id, viewContext),
+		]);
+
+		return { ...recipe, views: updatedViews ?? recipe.views, isFavorited };
 	}
 
 	async findAll(options: FindAllRecipesDto) {
@@ -325,6 +334,72 @@ export class RecipesRepository {
 					nutritionLabel: true,
 				},
 			});
+		});
+	}
+
+	private async isFavorited(recipeId: string, userId?: string): Promise<boolean> {
+		if (!userId) return false;
+
+		const favorite = await prisma.favorite.findUnique({
+			where: {
+				userId_recipeId: {
+					userId,
+					recipeId,
+				},
+			},
+			select: { id: true },
+		});
+
+		return Boolean(favorite);
+	}
+
+	private async registerView(
+		recipeId: string,
+		viewContext?: RecipeViewContext,
+	): Promise<number | null> {
+		if (!viewContext?.userId && !viewContext?.visitorId) return null;
+
+		const viewedAfter = new Date(Date.now() - RECIPE_VIEW_INTERVAL_IN_MS);
+		const identityWhere: Prisma.RecipeViewWhereInput = viewContext.userId
+			? { userId: viewContext.userId }
+			: { visitorId: viewContext.visitorId as string };
+
+		return await prisma.$transaction(async (tx) => {
+			const existingView = await tx.recipeView.findFirst({
+				where: {
+					recipeId,
+					createdAt: { gte: viewedAfter },
+					...identityWhere,
+				},
+				select: { id: true },
+			});
+
+			if (existingView) {
+				return null;
+			}
+
+			await tx.recipeView.create({
+				data: {
+					recipeId,
+					...(viewContext.userId ? { userId: viewContext.userId } : {}),
+					...(!viewContext.userId && viewContext.visitorId
+						? { visitorId: viewContext.visitorId }
+						: {}),
+					...(viewContext.ipHash ? { ipHash: viewContext.ipHash } : {}),
+					...(viewContext.userAgent ? { userAgent: viewContext.userAgent } : {}),
+				},
+			});
+
+			const views = await tx.recipeView.count({
+				where: { recipeId },
+			});
+
+			await tx.recipe.update({
+				where: { id: recipeId },
+				data: { views },
+			});
+
+			return views;
 		});
 	}
 

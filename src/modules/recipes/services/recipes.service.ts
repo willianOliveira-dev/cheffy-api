@@ -3,7 +3,7 @@ import type { z } from 'zod';
 import { prisma } from '@/lib/db/prisma.js';
 import { BadRequestError, NotFoundError } from '@/shared/errors/app.error.js';
 import type { PaginatedResponse } from '@/shared/types/paginated-response.js';
-import type { RecipesRepository } from '../repositories/recipes.repository.js';
+import type { RecipesRepository, RecipeViewContext } from '../repositories/recipes.repository.js';
 import type { CreateRecipeDto } from '../schemas/dtos/create-recipe.dto.js';
 import type { FindAllRecipesDto } from '../schemas/dtos/find-all-recipes.dto.js';
 import { findAllRecipesDtoSchema } from '../schemas/dtos/find-all-recipes.dto.js';
@@ -27,17 +27,18 @@ export class RecipesService {
 
 	async getById(
 		id: string,
-		userId?: string,
+		viewContext?: RecipeViewContext,
 	): Promise<NonNullable<Awaited<ReturnType<RecipesRepository['findById']>>>> {
-		const recipe = await this.repository.findById(id, userId);
+		const recipe = await this.repository.findById(id, viewContext);
 		if (!recipe) throw new NotFoundError('Receita');
 		return recipe;
 	}
 
 	async getBySlug(
 		slug: string,
+		viewContext?: RecipeViewContext,
 	): Promise<NonNullable<Awaited<ReturnType<RecipesRepository['findBySlug']>>>> {
-		const recipe = await this.repository.findBySlug(slug);
+		const recipe = await this.repository.findBySlug(slug, viewContext);
 		if (!recipe) throw new NotFoundError('Receita');
 		return recipe;
 	}
