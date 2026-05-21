@@ -1,5 +1,6 @@
 import type { Ingredient, IngredientNutrition } from '@prisma/client';
 import { prisma } from '@/lib/db/prisma.js';
+import { StorageService } from '@/modules/storage/services/storage.service.js';
 import { ConflictError, NotFoundError } from '@/shared/errors/app.error.js';
 import { generateUniqueSlug } from '@/shared/utils/slug.util.js';
 import type { IngredientsRepository } from '../repositories/ingredients.repository.js';
@@ -12,7 +13,10 @@ import type {
 import type { UpdateIngredientDto } from '../schemas/dtos/update-ingredient.dto.js';
 
 export class IngredientsService {
-	constructor(private readonly repository: IngredientsRepository) {}
+	constructor(
+		private readonly repository: IngredientsRepository,
+		private readonly storageService: StorageService = new StorageService(),
+	) {}
 
 	async create(
 		dto: CreateIngredientDto,
@@ -83,7 +87,7 @@ export class IngredientsService {
 		id: string,
 		dto: UpdateIngredientDto,
 	): Promise<Ingredient & { nutrition?: IngredientNutrition | null }> {
-		await this.getById(id);
+		const currentIngredient = await this.getById(id);
 
 		let slug: string | undefined;
 		if (dto.name) {
@@ -94,14 +98,20 @@ export class IngredientsService {
 			}
 		}
 
-		if (slug) {
-			return await this.repository.update(id, dto, slug);
-		}
-		return await this.repository.update(id, dto);
+		const updatedIngredient = slug
+			? await this.repository.update(id, dto, slug)
+			: await this.repository.update(id, dto);
+
+		await this.deleteReplacedImage(currentIngredient.imagePublicId, dto.imagePublicId);
+
+		return updatedIngredient;
 	}
 
 	async delete(id: string): Promise<void> {
-		await this.getById(id);
+		const ingredient = await this.getById(id);
+		if (ingredient.imagePublicId) {
+			await this.storageService.deleteImageAsset(ingredient.imagePublicId);
+		}
 		await this.repository.delete(id);
 	}
 
@@ -152,5 +162,16 @@ export class IngredientsService {
 		}
 
 		return await this.repository.updateNutrition(ingredientId, dto);
+	}
+
+	private async deleteReplacedImage(
+		currentImagePublicId: string | null,
+		nextImagePublicId?: string | null,
+	) {
+		if (nextImagePublicId === undefined) return;
+		if (!currentImagePublicId) return;
+		if (nextImagePublicId === currentImagePublicId) return;
+
+		await this.storageService.deleteImageAsset(currentImagePublicId);
 	}
 }

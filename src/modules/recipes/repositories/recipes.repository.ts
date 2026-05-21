@@ -31,6 +31,8 @@ export class RecipesRepository {
 				title: dto.title,
 				slug,
 				description: dto.description,
+				imageUrl: dto.imageUrl ?? null,
+				imagePublicId: dto.imagePublicId ?? null,
 				prepTime: dto.prepTime,
 				cookTime: dto.cookTime,
 				totalTime: dto.prepTime + dto.cookTime,
@@ -239,7 +241,11 @@ export class RecipesRepository {
 	async delete(id: string) {
 		return await prisma.recipe.update({
 			where: { id },
-			data: { deletedAt: new Date() },
+			data: {
+				deletedAt: new Date(),
+				imageUrl: null,
+				imagePublicId: null,
+			},
 		});
 	}
 
@@ -409,6 +415,8 @@ export class RecipesRepository {
 		const result: Prisma.RecipeUpdateInput = {};
 		if (fields.title !== undefined) result.title = fields.title;
 		if (fields.description !== undefined) result.description = fields.description;
+		if (fields.imageUrl !== undefined) result.imageUrl = fields.imageUrl;
+		if (fields.imagePublicId !== undefined) result.imagePublicId = fields.imagePublicId;
 		if (fields.yieldAmount !== undefined) result.yieldAmount = fields.yieldAmount;
 		if (fields.yieldUnit !== undefined) result.yieldUnit = fields.yieldUnit;
 		if (fields.difficulty !== undefined) result.difficulty = fields.difficulty;

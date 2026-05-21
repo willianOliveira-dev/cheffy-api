@@ -1,7 +1,4 @@
 -- CreateEnum
-CREATE TYPE "recipe_ai_insight_type" AS ENUM ('LIGHTER_VERSION', 'HIGH_PROTEIN', 'LOW_CALORIE', 'INGREDIENT_SWAP', 'GENERAL_TIPS', 'NUTRITION_EXPLANATION');
-
--- CreateEnum
 CREATE TYPE "difficulty_level" AS ENUM ('EASY', 'MEDIUM', 'HARD', 'EXPERT');
 
 -- CreateEnum
@@ -76,6 +73,7 @@ CREATE TABLE "categories" (
     "description" VARCHAR(250),
     "iconKey" VARCHAR(30) NOT NULL DEFAULT 'utensils',
     "imageUrl" TEXT,
+    "imagePublicId" TEXT,
     "position" INTEGER NOT NULL DEFAULT 0,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -89,6 +87,7 @@ CREATE TABLE "ingredients" (
     "name" VARCHAR(150) NOT NULL,
     "slug" TEXT NOT NULL,
     "imageUrl" TEXT,
+    "imagePublicId" TEXT,
     "category" VARCHAR(50),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -100,16 +99,16 @@ CREATE TABLE "ingredients" (
 CREATE TABLE "ingredient_nutritions" (
     "id" TEXT NOT NULL,
     "ingredientId" TEXT NOT NULL,
-    "energyKcalPer100g" DOUBLE PRECISION NOT NULL,
-    "carbohydratesPer100g" DOUBLE PRECISION NOT NULL,
-    "totalSugarsPer100g" DOUBLE PRECISION,
-    "addedSugarsPer100g" DOUBLE PRECISION,
-    "proteinPer100g" DOUBLE PRECISION NOT NULL,
-    "totalFatPer100g" DOUBLE PRECISION NOT NULL,
-    "saturatedFatPer100g" DOUBLE PRECISION,
-    "transFatPer100g" DOUBLE PRECISION,
-    "fiberPer100g" DOUBLE PRECISION,
-    "sodiumMgPer100g" DOUBLE PRECISION,
+    "energyKcalPer100g" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "carbohydratesPer100g" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "totalSugarsPer100g" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "addedSugarsPer100g" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "proteinPer100g" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "totalFatPer100g" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "saturatedFatPer100g" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "transFatPer100g" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "fiberPer100g" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "sodiumMgPer100g" DOUBLE PRECISION NOT NULL DEFAULT 0,
     "source" VARCHAR(100),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -124,6 +123,7 @@ CREATE TABLE "recipes" (
     "slug" TEXT NOT NULL,
     "description" VARCHAR(500) NOT NULL,
     "imageUrl" TEXT,
+    "imagePublicId" TEXT,
     "prepTime" INTEGER NOT NULL,
     "cookTime" INTEGER NOT NULL,
     "totalTime" INTEGER NOT NULL DEFAULT 0,
@@ -211,22 +211,6 @@ CREATE TABLE "recipe_section_ingredients" (
 );
 
 -- CreateTable
-CREATE TABLE "recipe_ai_insights" (
-    "id" TEXT NOT NULL,
-    "recipeId" TEXT NOT NULL,
-    "type" "recipe_ai_insight_type" NOT NULL,
-    "title" VARCHAR(120) NOT NULL,
-    "summary" VARCHAR(500) NOT NULL,
-    "suggestions" JSONB,
-    "warnings" JSONB,
-    "metadata" JSONB,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "recipe_ai_insights_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "preparation_steps" (
     "id" TEXT NOT NULL,
     "description" TEXT NOT NULL,
@@ -263,6 +247,19 @@ CREATE TABLE "favorites" (
     "recipeId" TEXT NOT NULL,
 
     CONSTRAINT "favorites_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "recipe_views" (
+    "id" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "recipeId" TEXT NOT NULL,
+    "userId" TEXT,
+    "visitorId" TEXT,
+    "ipHash" TEXT,
+    "userAgent" TEXT,
+
+    CONSTRAINT "recipe_views_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -323,9 +320,6 @@ CREATE INDEX "recipe_section_ingredients_sectionId_idx" ON "recipe_section_ingre
 CREATE INDEX "recipe_section_ingredients_ingredientId_idx" ON "recipe_section_ingredients"("ingredientId");
 
 -- CreateIndex
-CREATE INDEX "recipe_ai_insights_recipeId_idx" ON "recipe_ai_insights"("recipeId");
-
--- CreateIndex
 CREATE INDEX "preparation_steps_sectionId_idx" ON "preparation_steps"("sectionId");
 
 -- CreateIndex
@@ -342,6 +336,15 @@ CREATE INDEX "favorites_recipeId_idx" ON "favorites"("recipeId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "favorites_userId_recipeId_key" ON "favorites"("userId", "recipeId");
+
+-- CreateIndex
+CREATE INDEX "recipe_views_recipeId_createdAt_idx" ON "recipe_views"("recipeId", "createdAt");
+
+-- CreateIndex
+CREATE INDEX "recipe_views_userId_createdAt_idx" ON "recipe_views"("userId", "createdAt");
+
+-- CreateIndex
+CREATE INDEX "recipe_views_visitorId_createdAt_idx" ON "recipe_views"("visitorId", "createdAt");
 
 -- AddForeignKey
 ALTER TABLE "session" ADD CONSTRAINT "session_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -371,9 +374,6 @@ ALTER TABLE "recipe_section_ingredients" ADD CONSTRAINT "recipe_section_ingredie
 ALTER TABLE "recipe_section_ingredients" ADD CONSTRAINT "recipe_section_ingredients_ingredientId_fkey" FOREIGN KEY ("ingredientId") REFERENCES "ingredients"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "recipe_ai_insights" ADD CONSTRAINT "recipe_ai_insights_recipeId_fkey" FOREIGN KEY ("recipeId") REFERENCES "recipes"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "preparation_steps" ADD CONSTRAINT "preparation_steps_sectionId_fkey" FOREIGN KEY ("sectionId") REFERENCES "recipe_sections"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -387,3 +387,9 @@ ALTER TABLE "favorites" ADD CONSTRAINT "favorites_userId_fkey" FOREIGN KEY ("use
 
 -- AddForeignKey
 ALTER TABLE "favorites" ADD CONSTRAINT "favorites_recipeId_fkey" FOREIGN KEY ("recipeId") REFERENCES "recipes"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "recipe_views" ADD CONSTRAINT "recipe_views_recipeId_fkey" FOREIGN KEY ("recipeId") REFERENCES "recipes"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "recipe_views" ADD CONSTRAINT "recipe_views_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;

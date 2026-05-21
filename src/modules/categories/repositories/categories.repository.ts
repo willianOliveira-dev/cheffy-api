@@ -15,6 +15,7 @@ export class CategoriesRepository {
 				description: data.description ?? null,
 				iconKey: data.iconKey,
 				imageUrl: data.imageUrl ?? null,
+				imagePublicId: data.imagePublicId ?? null,
 				position: data.position,
 			},
 		});
@@ -67,6 +68,7 @@ export class CategoriesRepository {
 		if (data.description !== undefined) updateData.description = data.description;
 		if (data.iconKey !== undefined) updateData.iconKey = data.iconKey;
 		if (data.imageUrl !== undefined) updateData.imageUrl = data.imageUrl;
+		if (data.imagePublicId !== undefined) updateData.imagePublicId = data.imagePublicId;
 		if (data.position !== undefined) updateData.position = data.position;
 
 		return await this.db.category.update({

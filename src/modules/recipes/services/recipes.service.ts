@@ -1,6 +1,7 @@
 import type { Prisma } from '@prisma/client';
 import type { z } from 'zod';
 import { prisma } from '@/lib/db/prisma.js';
+import { StorageService } from '@/modules/storage/services/storage.service.js';
 import { BadRequestError, NotFoundError } from '@/shared/errors/app.error.js';
 import type { PaginatedResponse } from '@/shared/types/paginated-response.js';
 import type { RecipesRepository, RecipeViewContext } from '../repositories/recipes.repository.js';
@@ -15,6 +16,7 @@ export class RecipesService {
 	constructor(
 		private readonly repository: RecipesRepository,
 		private readonly nutritionCalculator: NutritionCalculatorService,
+		private readonly storageService: StorageService = new StorageService(),
 	) {}
 
 	async create(
@@ -85,16 +87,22 @@ export class RecipesService {
 		id: string,
 		data: UpdateRecipeDto,
 	): Promise<Awaited<ReturnType<RecipesRepository['update']>>> {
-		await this.getById(id);
+		const currentRecipe = await this.getById(id);
 		let nutritionData = null;
 		if (data.sections) {
 			nutritionData = await this.nutritionCalculator.calculateForRecipe(data);
 		}
-		return await this.repository.update(id, data, nutritionData);
+		const updatedRecipe = await this.repository.update(id, data, nutritionData);
+		await this.deleteReplacedImage(currentRecipe.imagePublicId, data.imagePublicId);
+
+		return updatedRecipe;
 	}
 
 	async delete(id: string): Promise<Awaited<ReturnType<RecipesRepository['delete']>>> {
-		await this.getById(id);
+		const recipe = await this.getById(id);
+		if (recipe.imagePublicId) {
+			await this.storageService.deleteImageAsset(recipe.imagePublicId);
+		}
 		return await this.repository.delete(id);
 	}
 
@@ -114,5 +122,16 @@ export class RecipesService {
 		const recipe = await this.repository.unfavorite(id, userId);
 		if (!recipe) throw new NotFoundError('Receita');
 		return recipe;
+	}
+
+	private async deleteReplacedImage(
+		currentImagePublicId: string | null,
+		nextImagePublicId?: string | null,
+	) {
+		if (nextImagePublicId === undefined) return;
+		if (!currentImagePublicId) return;
+		if (nextImagePublicId === currentImagePublicId) return;
+
+		await this.storageService.deleteImageAsset(currentImagePublicId);
 	}
 }

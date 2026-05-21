@@ -1,5 +1,6 @@
 import type { Category } from '@prisma/client';
 import { prisma } from '@/lib/db/prisma.js';
+import { StorageService } from '@/modules/storage/services/storage.service.js';
 import { BadRequestError, ConflictError, NotFoundError } from '@/shared/errors/app.error.js';
 import { generateUniqueSlug } from '@/shared/utils/slug.util.js';
 import type { CategoriesRepository } from '../repositories/categories.repository.js';
@@ -8,7 +9,10 @@ import type { FindAllCategoriesDto } from '../schemas/dtos/find-all-categories.d
 import type { UpdateCategoryDto } from '../schemas/dtos/update-category.dto.js';
 
 export class CategoriesService {
-	constructor(private readonly repository: CategoriesRepository) {}
+	constructor(
+		private readonly repository: CategoriesRepository,
+		private readonly storageService: StorageService = new StorageService(),
+	) {}
 
 	async create(dto: CreateCategoryDto): Promise<Category> {
 		const existing = await this.repository.findByName(dto.name);
@@ -65,7 +69,7 @@ export class CategoriesService {
 	}
 
 	async update(id: string, dto: UpdateCategoryDto): Promise<Category> {
-		await this.getById(id);
+		const currentCategory = await this.getById(id);
 
 		if (dto.name !== undefined) {
 			const existing = await this.repository.findByName(dto.name);
@@ -79,11 +83,14 @@ export class CategoriesService {
 			slug = await generateUniqueSlug(prisma.category, dto.name);
 		}
 
-		return await this.repository.update(id, dto, slug);
+		const updatedCategory = await this.repository.update(id, dto, slug);
+		await this.deleteReplacedImage(currentCategory.imagePublicId, dto.imagePublicId);
+
+		return updatedCategory;
 	}
 
 	async delete(id: string): Promise<void> {
-		await this.getById(id);
+		const category = await this.getById(id);
 
 		const hasRecipes = await this.repository.hasRecipes(id);
 		if (hasRecipes) {
@@ -92,6 +99,21 @@ export class CategoriesService {
 			);
 		}
 
+		if (category.imagePublicId) {
+			await this.storageService.deleteImageAsset(category.imagePublicId);
+		}
+
 		await this.repository.delete(id);
+	}
+
+	private async deleteReplacedImage(
+		currentImagePublicId: string | null,
+		nextImagePublicId?: string | null,
+	) {
+		if (nextImagePublicId === undefined) return;
+		if (!currentImagePublicId) return;
+		if (nextImagePublicId === currentImagePublicId) return;
+
+		await this.storageService.deleteImageAsset(currentImagePublicId);
 	}
 }

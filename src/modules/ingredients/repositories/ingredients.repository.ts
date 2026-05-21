@@ -17,6 +17,7 @@ export class IngredientsRepository {
 				name: data.name,
 				slug,
 				imageUrl: data.imageUrl ?? null,
+				imagePublicId: data.imagePublicId ?? null,
 				category: data.category ?? null,
 			},
 			include: {
@@ -74,6 +75,7 @@ export class IngredientsRepository {
 		if (data.name) updateData.name = data.name;
 		if (slug) updateData.slug = slug;
 		if (data.imageUrl !== undefined) updateData.imageUrl = data.imageUrl;
+		if (data.imagePublicId !== undefined) updateData.imagePublicId = data.imagePublicId;
 		if (data.category !== undefined) updateData.category = data.category;
 
 		return await this.db.ingredient.update({

@@ -86,6 +86,7 @@ model Category {
   description String?  @db.VarChar(250)
   iconKey     String   @default("utensils") @db.VarChar(30)
   imageUrl    String?
+  imagePublicId String?
   position    Int      @default(0)
 
   createdAt   DateTime @default(now())
@@ -102,6 +103,7 @@ model Ingredient {
   name      String   @unique @db.VarChar(150)
   slug      String   @unique
   imageUrl  String?
+  imagePublicId String?
   category  String?  @db.VarChar(50)
 
   createdAt DateTime @default(now())
@@ -144,6 +146,7 @@ model Recipe {
   slug        String  @unique
   description String  @db.VarChar(500)
   imageUrl    String?
+  imagePublicId String?
 
   prepTime    Int
   cookTime    Int

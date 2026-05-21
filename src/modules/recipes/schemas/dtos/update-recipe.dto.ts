@@ -67,6 +67,15 @@ export const updateRecipeDtoSchema = z
 			.string({ message: 'A descrição deve ser um texto' })
 			.min(1, 'A descrição é obrigatória')
 			.optional(),
+		imageUrl: z
+			.string({ message: 'A URL da imagem deve ser um texto' })
+			.url('A URL da imagem informada e invalida')
+			.optional()
+			.nullable(),
+		imagePublicId: z
+			.string({ message: 'O public ID da imagem deve ser um texto' })
+			.optional()
+			.nullable(),
 		prepTime: z
 			.number({ message: 'O tempo de preparação é obrigatório' })
 			.int('O tempo de preparação deve ser um número inteiro')
