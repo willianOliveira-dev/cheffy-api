@@ -154,6 +154,7 @@ const baseRecipeSchema = {
 	updatedAt: z.union([z.string(), z.date()]).openapi({ type: 'string', format: 'date-time' }),
 	authorId: z.string().uuid(),
 	categoryId: z.string().uuid(),
+	isFavorited: z.boolean().optional(),
 };
 
 export const recipeSummaryResponseSchema = z

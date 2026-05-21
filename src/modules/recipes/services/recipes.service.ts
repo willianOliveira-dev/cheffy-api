@@ -25,13 +25,18 @@ export class RecipesService {
 		return await this.repository.create(dto, authorId, nutritionData);
 	}
 
-	async getById(id: string): Promise<NonNullable<Awaited<ReturnType<RecipesRepository['findById']>>>> {
-		const recipe = await this.repository.findById(id);
+	async getById(
+		id: string,
+		userId?: string,
+	): Promise<NonNullable<Awaited<ReturnType<RecipesRepository['findById']>>>> {
+		const recipe = await this.repository.findById(id, userId);
 		if (!recipe) throw new NotFoundError('Receita');
 		return recipe;
 	}
 
-	async getBySlug(slug: string): Promise<NonNullable<Awaited<ReturnType<RecipesRepository['findBySlug']>>>> {
+	async getBySlug(
+		slug: string,
+	): Promise<NonNullable<Awaited<ReturnType<RecipesRepository['findBySlug']>>>> {
 		const recipe = await this.repository.findBySlug(slug);
 		if (!recipe) throw new NotFoundError('Receita');
 		return recipe;
@@ -90,5 +95,23 @@ export class RecipesService {
 	async delete(id: string): Promise<Awaited<ReturnType<RecipesRepository['delete']>>> {
 		await this.getById(id);
 		return await this.repository.delete(id);
+	}
+
+	async favorite(
+		id: string,
+		userId: string,
+	): Promise<NonNullable<Awaited<ReturnType<RecipesRepository['favorite']>>>> {
+		const recipe = await this.repository.favorite(id, userId);
+		if (!recipe) throw new NotFoundError('Receita');
+		return recipe;
+	}
+
+	async unfavorite(
+		id: string,
+		userId: string,
+	): Promise<NonNullable<Awaited<ReturnType<RecipesRepository['unfavorite']>>>> {
+		const recipe = await this.repository.unfavorite(id, userId);
+		if (!recipe) throw new NotFoundError('Receita');
+		return recipe;
 	}
 }

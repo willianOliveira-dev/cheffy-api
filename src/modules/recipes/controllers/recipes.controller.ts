@@ -21,8 +21,8 @@ export class RecipesController {
 		return await this.service.getAll(query);
 	}
 
-	async getById(id: string): ReturnType<RecipesService['getById']> {
-		return await this.service.getById(id);
+	async getById(id: string, userId?: string): ReturnType<RecipesService['getById']> {
+		return await this.service.getById(id, userId);
 	}
 
 	async getBySlug(slug: string): ReturnType<RecipesService['getBySlug']> {
@@ -35,6 +35,14 @@ export class RecipesController {
 
 	async delete(id: string): ReturnType<RecipesService['delete']> {
 		return await this.service.delete(id);
+	}
+
+	async favorite(id: string, userId: string): ReturnType<RecipesService['favorite']> {
+		return await this.service.favorite(id, userId);
+	}
+
+	async unfavorite(id: string, userId: string): ReturnType<RecipesService['unfavorite']> {
+		return await this.service.unfavorite(id, userId);
 	}
 }
 

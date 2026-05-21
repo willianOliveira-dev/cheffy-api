@@ -79,8 +79,8 @@ export class RecipesRepository {
 			},
 		});
 	}
-	async findById(id: string) {
-		return await prisma.recipe.findUnique({
+	async findById(id: string, userId?: string) {
+		const recipe = await prisma.recipe.findUnique({
 			where: { id },
 			include: {
 				sections: {
@@ -97,6 +97,24 @@ export class RecipesRepository {
 				nutritionLabel: true,
 			},
 		});
+
+		if (!recipe) return null;
+
+		if (!userId) {
+			return { ...recipe, isFavorited: false };
+		}
+
+		const favorite = await prisma.favorite.findUnique({
+			where: {
+				userId_recipeId: {
+					userId,
+					recipeId: id,
+				},
+			},
+			select: { id: true },
+		});
+
+		return { ...recipe, isFavorited: Boolean(favorite) };
 	}
 
 	async findBySlug(slug: string) {
@@ -213,6 +231,100 @@ export class RecipesRepository {
 		return await prisma.recipe.update({
 			where: { id },
 			data: { deletedAt: new Date() },
+		});
+	}
+
+	async favorite(recipeId: string, userId: string) {
+		return await prisma.$transaction(async (tx) => {
+			const recipe = await tx.recipe.findFirst({
+				where: { id: recipeId, deletedAt: null },
+				select: { id: true },
+			});
+
+			if (!recipe) {
+				return null;
+			}
+
+			const existingFavorite = await tx.favorite.findUnique({
+				where: { userId_recipeId: { userId, recipeId } },
+				select: { id: true },
+			});
+
+			if (!existingFavorite) {
+				await tx.favorite.create({
+					data: { userId, recipeId },
+				});
+			}
+
+			const totalFavorites = await tx.favorite.count({
+				where: { recipeId },
+			});
+
+			return await tx.recipe.update({
+				where: { id: recipeId },
+				data: { totalFavorites },
+				include: {
+					sections: {
+						include: {
+							ingredients: {
+								include: { ingredient: true },
+							},
+							steps: true,
+						},
+					},
+					author: { select: { id: true, name: true } },
+					category: true,
+					tags: { include: { tag: true } },
+					nutritionLabel: true,
+				},
+			});
+		});
+	}
+
+	async unfavorite(recipeId: string, userId: string) {
+		return await prisma.$transaction(async (tx) => {
+			const recipe = await tx.recipe.findFirst({
+				where: { id: recipeId, deletedAt: null },
+				select: { id: true },
+			});
+
+			if (!recipe) {
+				return null;
+			}
+
+			const existingFavorite = await tx.favorite.findUnique({
+				where: { userId_recipeId: { userId, recipeId } },
+				select: { id: true },
+			});
+
+			if (existingFavorite) {
+				await tx.favorite.delete({
+					where: { userId_recipeId: { userId, recipeId } },
+				});
+			}
+
+			const totalFavorites = await tx.favorite.count({
+				where: { recipeId },
+			});
+
+			return await tx.recipe.update({
+				where: { id: recipeId },
+				data: { totalFavorites },
+				include: {
+					sections: {
+						include: {
+							ingredients: {
+								include: { ingredient: true },
+							},
+							steps: true,
+						},
+					},
+					author: { select: { id: true, name: true } },
+					category: true,
+					tags: { include: { tag: true } },
+					nutritionLabel: true,
+				},
+			});
 		});
 	}
 

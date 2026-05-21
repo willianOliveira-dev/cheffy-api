@@ -1,4 +1,5 @@
 import { createRoute, z } from '@hono/zod-openapi';
+import { auth } from '@/lib/auth/auth.lib.js';
 import { authenticateMiddleware } from '@/middlewares/auth/auth.middleware.js';
 import { createRouter } from '@/shared/utils/router.util.js';
 import { recipesController } from '../controllers/recipes.controller.js';
@@ -153,6 +154,52 @@ const deleteRecipeRoute = createRoute({
 	},
 });
 
+const favoriteRecipeRoute = createRoute({
+	method: 'post',
+	path: `${path}/{id}/favorite`,
+	operationId: 'favoriteRecipe',
+	tags: ['Recipes'],
+	middleware: [authenticateMiddleware] as const,
+	request: {
+		params: z.object({
+			id: z.string().uuid(),
+		}),
+	},
+	responses: {
+		200: {
+			content: {
+				'application/json': {
+					schema: recipeResponseSchema,
+				},
+			},
+			description: 'Receita favoritada',
+		},
+	},
+});
+
+const unfavoriteRecipeRoute = createRoute({
+	method: 'delete',
+	path: `${path}/{id}/favorite`,
+	operationId: 'unfavoriteRecipe',
+	tags: ['Recipes'],
+	middleware: [authenticateMiddleware] as const,
+	request: {
+		params: z.object({
+			id: z.string().uuid(),
+		}),
+	},
+	responses: {
+		200: {
+			content: {
+				'application/json': {
+					schema: recipeResponseSchema,
+				},
+			},
+			description: 'Receita removida dos favoritos',
+		},
+	},
+});
+
 recipesRoutes.openapi(getRecipesRoute, async (c) => {
 	const query = c.req.valid('query');
 	const recipes = await recipesController.getAll(query);
@@ -161,7 +208,10 @@ recipesRoutes.openapi(getRecipesRoute, async (c) => {
 
 recipesRoutes.openapi(getRecipeByIdRoute, async (c) => {
 	const { id } = c.req.valid('param');
-	const recipe = await recipesController.getById(id);
+	const session = await auth.api.getSession({
+		headers: c.req.raw.headers,
+	});
+	const recipe = await recipesController.getById(id, session?.user.id);
 	return c.json(recipe, 200);
 });
 
@@ -189,4 +239,18 @@ recipesRoutes.openapi(deleteRecipeRoute, async (c) => {
 	const { id } = c.req.valid('param');
 	await recipesController.delete(id);
 	return c.body(null, 204);
+});
+
+recipesRoutes.openapi(favoriteRecipeRoute, async (c) => {
+	const { id } = c.req.valid('param');
+	const { user } = c.get('session');
+	const recipe = await recipesController.favorite(id, user.id);
+	return c.json(recipe, 200);
+});
+
+recipesRoutes.openapi(unfavoriteRecipeRoute, async (c) => {
+	const { id } = c.req.valid('param');
+	const { user } = c.get('session');
+	const recipe = await recipesController.unfavorite(id, user.id);
+	return c.json(recipe, 200);
 });
