@@ -35,6 +35,11 @@ type RecipeIngredient = {
 	notes?: string;
 };
 
+type SeedStep = {
+	description: string;
+	stepTime: number;
+};
+
 type SeedRecipe = {
 	title: string;
 	slug: string;
@@ -49,7 +54,7 @@ type SeedRecipe = {
 	tags: string[];
 	isFeatured?: boolean;
 	ingredients: RecipeIngredient[];
-	steps: string[];
+	steps: SeedStep[];
 };
 
 const nutritionSource = 'Seed Cheffy aproximado';
@@ -882,7 +887,7 @@ function r(
 			grams,
 			text: text ?? formatIngredientText(name, grams),
 		})),
-		steps: buildSteps(title),
+		steps: buildSteps(title, prepTime + cookTime),
 	};
 }
 
@@ -920,9 +925,10 @@ async function main() {
 						notes: ingredient.notes,
 						position: index + 1,
 					})),
-					steps: recipe.steps.map((description, index) => ({
-						description,
+					steps: recipe.steps.map((step, index) => ({
+						description: step.description,
 						position: index + 1,
+						stepTime: step.stepTime,
 					})),
 				},
 			],
@@ -1102,10 +1108,10 @@ function buildSections(recipe: SeedRecipe, ingredientByName: Map<string, string>
 				})),
 			},
 			steps: {
-				create: recipe.steps.map((description, index) => ({
-					description,
+				create: recipe.steps.map((step, index) => ({
+					description: step.description,
 					position: index + 1,
-					stepTime: null,
+					stepTime: step.stepTime,
 				})),
 			},
 		},
@@ -1140,13 +1146,41 @@ function buildDescription(title: string, recipeTags: string[]) {
 	return `${title} preparado com ingredientes conhecidos e medidas em gramas para gerar tabela nutricional aproximada. Receita ${tagText}, pensada para testar a experiência completa do Cheffy.`;
 }
 
-function buildSteps(title: string) {
-	return [
+function buildSteps(title: string, totalTime: number): SeedStep[] {
+	const descriptions = [
 		'Separe e pese todos os ingredientes antes de começar.',
 		'Prepare a base da receita em fogo médio, refogando ou misturando os ingredientes principais conforme o tipo de prato.',
 		'Cozinhe até atingir textura, ponto e aroma característicos, ajustando sal e temperos aos poucos.',
 		`Finalize e sirva ${title.toLowerCase()} ainda no melhor ponto de consumo.`,
 	];
+	const stepTimes = distributeStepTimes(totalTime, descriptions.length);
+	return descriptions.map((description, index) => ({
+		description,
+		stepTime: stepTimes[index] ?? 1,
+	}));
+}
+
+function distributeStepTimes(totalTime: number, stepCount: number) {
+	const weights = [0.12, 0.34, 0.46, 0.08];
+	const baseTimes = weights
+		.slice(0, stepCount)
+		.map((weight) => Math.max(1, Math.floor(totalTime * weight)));
+	let remaining = totalTime - baseTimes.reduce((sum, time) => sum + time, 0);
+	let index = 0;
+	while (remaining > 0) {
+		baseTimes[index % baseTimes.length]++;
+		remaining--;
+		index++;
+	}
+	while (remaining < 0) {
+		const currentIndex = baseTimes.length - 1 - (index % baseTimes.length);
+		if (baseTimes[currentIndex] > 1) {
+			baseTimes[currentIndex]--;
+			remaining++;
+		}
+		index++;
+	}
+	return baseTimes;
 }
 
 function formatIngredientText(name: string, grams: number) {
