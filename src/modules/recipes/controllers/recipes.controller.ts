@@ -17,8 +17,8 @@ export class RecipesController {
 		return await this.service.create(data, userId);
 	}
 
-	async getAll(query: FindAllRecipesDto): ReturnType<RecipesService['getAll']> {
-		return await this.service.getAll(query);
+	async getAll(query: FindAllRecipesDto, userId?: string): ReturnType<RecipesService['getAll']> {
+		return await this.service.getAll(query, userId);
 	}
 
 	async getById(

@@ -209,7 +209,10 @@ const unfavoriteRecipeRoute = createRoute({
 
 recipesRoutes.openapi(getRecipesRoute, async (c) => {
 	const query = c.req.valid('query');
-	const recipes = await recipesController.getAll(query);
+	const session = await auth.api.getSession({
+		headers: c.req.raw.headers,
+	});
+	const recipes = await recipesController.getAll(query, session?.user.id);
 	return c.json(paginatedRecipeListResponseSchema.parse(recipes), 200);
 });
 

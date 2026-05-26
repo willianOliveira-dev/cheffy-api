@@ -47,6 +47,7 @@ export class RecipesService {
 
 	async getAll(
 		dto: FindAllRecipesDto,
+		userId?: string,
 	): Promise<PaginatedResponse<z.infer<typeof recipeSummaryResponseSchema>>> {
 		const parseResult = findAllRecipesDtoSchema.safeParse(dto);
 		if (!parseResult.success) {
@@ -67,7 +68,7 @@ export class RecipesService {
 		}
 
 		const total = await prisma.recipe.count({ where });
-		const items = await this.repository.findAll(dto);
+		const items = await this.repository.findAll(dto, userId);
 		const totalPages = Math.ceil(total / opts.limit);
 
 		return {

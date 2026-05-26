@@ -140,6 +140,7 @@ const baseRecipeSchema = {
 	isPublished: z.boolean(),
 	isFeatured: z.boolean(),
 	totalFavorites: z.number(),
+	views: z.number(),
 	deletedAt: z
 		.union([z.string(), z.date()])
 		.nullable()
