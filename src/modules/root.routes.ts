@@ -1,4 +1,5 @@
 import type { OpenAPIHono } from '@hono/zod-openapi';
+import { aiRoutes } from './ai/routes/ai.routes.js';
 import { authRoutes } from './auth/routes/auth.routes.js';
 import { categoriesRoutes } from './categories/routes/categories.routes.js';
 import { homeRoutes } from './home/routes/home.routes.js';
@@ -20,6 +21,7 @@ export function registerRoutes(app: OpenAPIHono) {
 	app.route(basePath, tagsRoutes);
 	app.route(basePath, storageRoutes);
 	app.route(basePath, usersRoutes);
+	app.route(basePath, aiRoutes);
 
 	swaggerRoutes(app);
 }
