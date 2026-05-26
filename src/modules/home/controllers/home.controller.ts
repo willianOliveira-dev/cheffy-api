@@ -8,15 +8,16 @@ export const homeService = new HomeService(repository);
 export class HomeController {
 	constructor(private readonly service: HomeService) {}
 
-	async getHome(): ReturnType<HomeService['getHome']> {
-		return await this.service.getHome();
+	async getHome(userId?: string): ReturnType<HomeService['getHome']> {
+		return await this.service.getHome(userId);
 	}
 
 	async getCategoryRecipes(
 		slug: string,
-		filters: FindCategoryRecipesDto,
+		query: FindCategoryRecipesDto,
+		userId?: string,
 	): ReturnType<HomeService['getCategoryRecipes']> {
-		return await this.service.getCategoryRecipes(slug, filters);
+		return await this.service.getCategoryRecipes(slug, query, userId);
 	}
 }
 

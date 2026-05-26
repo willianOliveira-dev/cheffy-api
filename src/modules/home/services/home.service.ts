@@ -8,7 +8,7 @@ const WEEKLY_HIGHLIGHT_DAYS = 7;
 export class HomeService {
 	constructor(private readonly repository: HomeRepository) {}
 
-	async getHome() {
+	async getHome(userId?: string) {
 		const [
 			headerCategories,
 			weeklyHighlights,
@@ -23,16 +23,29 @@ export class HomeService {
 			this.repository.findFavoriteFlavorCategories(),
 		]);
 
+		let favoritedIds = new Set<string>();
+		if (userId) {
+			const allRecipeIds = [
+				...weeklyHighlights.map((r) => r.id),
+				...mostAccessedRecipes.map((r) => r.id),
+				...featuredRecipes.map((r) => r.id),
+			];
+			favoritedIds = await this.repository.getFavoritedIds(allRecipeIds, userId);
+		}
+
+		const mapFavorites = (recipes: any[]) =>
+			recipes.map((r) => ({ ...r, isFavorited: favoritedIds.has(r.id) }));
+
 		return {
 			headerCategories,
-			weeklyHighlights,
-			mostAccessedRecipes,
-			featuredRecipes,
+			weeklyHighlights: mapFavorites(weeklyHighlights),
+			mostAccessedRecipes: mapFavorites(mostAccessedRecipes),
+			featuredRecipes: mapFavorites(featuredRecipes),
 			favoriteFlavorCategories,
 		};
 	}
 
-	async getCategoryRecipes(slug: string, filters: FindCategoryRecipesDto) {
+	async getCategoryRecipes(slug: string, filters: FindCategoryRecipesDto, userId?: string) {
 		const category = await this.repository.findCategoryBySlug(slug);
 		if (!category) {
 			throw new NotFoundError('Categoria');
@@ -41,10 +54,19 @@ export class HomeService {
 		const { items, totalItems } = await this.repository.findCategoryRecipes(category.id, filters);
 		const totalPages = Math.ceil(totalItems / filters.limit);
 
+		let mappedItems = items;
+		if (userId && items.length > 0) {
+			const favoritedIds = await this.repository.getFavoritedIds(
+				items.map((r) => r.id),
+				userId,
+			);
+			mappedItems = items.map((r) => ({ ...r, isFavorited: favoritedIds.has(r.id) })) as any;
+		}
+
 		return {
 			category,
 			recipes: {
-				items,
+				items: mappedItems,
 				meta: {
 					page: filters.page,
 					pageSize: filters.limit,

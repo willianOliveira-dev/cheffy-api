@@ -1,4 +1,5 @@
 import { createRoute, z } from '@hono/zod-openapi';
+import { auth } from '@/lib/auth/auth.lib.js';
 import { createRouter } from '@/shared/utils/router.util.js';
 import { homeController } from '../controllers/home.controller.js';
 import { findCategoryRecipesDtoSchema } from '../schemas/dtos/find-category-recipes.dto.js';
@@ -50,13 +51,19 @@ const getCategoryRecipesRoute = createRoute({
 });
 
 homeRoutes.openapi(getHomeRoute, async (c) => {
-	const result = await homeController.getHome();
+	const session = await auth.api.getSession({
+		headers: c.req.raw.headers,
+	});
+	const result = await homeController.getHome(session?.user.id);
 	return c.json(homeResponseSchema.parse(result), 200);
 });
 
 homeRoutes.openapi(getCategoryRecipesRoute, async (c) => {
 	const { slug } = c.req.valid('param');
 	const query = c.req.valid('query');
-	const result = await homeController.getCategoryRecipes(slug, query);
+	const session = await auth.api.getSession({
+		headers: c.req.raw.headers,
+	});
+	const result = await homeController.getCategoryRecipes(slug, query, session?.user.id);
 	return c.json(homeCategoryRecipesResponseSchema.parse(result), 200);
 });

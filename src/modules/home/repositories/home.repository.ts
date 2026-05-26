@@ -143,4 +143,18 @@ export class HomeRepository {
 	): Prisma.RecipeOrderByWithRelationInput {
 		return orderBy === 'oldest' ? { createdAt: 'asc' } : { createdAt: 'desc' };
 	}
+
+	async getFavoritedIds(recipeIds: string[], userId: string): Promise<Set<string>> {
+		if (recipeIds.length === 0) return new Set();
+
+		const favorites = await prisma.favorite.findMany({
+			where: {
+				userId,
+				recipeId: { in: recipeIds },
+			},
+			select: { recipeId: true },
+		});
+
+		return new Set(favorites.map((f) => f.recipeId));
+	}
 }
