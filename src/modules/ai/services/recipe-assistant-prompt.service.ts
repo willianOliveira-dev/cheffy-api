@@ -31,16 +31,17 @@ export class RecipeAssistantPromptService {
 			'Toda alteração de quantidade deve trazer medidas em gramas. Se o usuário pedir xícaras, ou se a preferência enviada for "grams-and-cups", inclua também xícaras aproximadas.',
 			'Ao converter para xícaras, informe que é uma aproximação quando a densidade do ingrediente puder variar.',
 			'Não prometa resultados médicos ou nutricionais. Para alergias graves, doença celíaca ou dietas clínicas, recomende conferir rótulos e buscar orientação profissional.',
-			'Não retorne JSON. Use parágrafos curtos e listas quando facilitar a leitura.',
+			'ATENÇÃO: NUNCA retorne blocos de código JSON ou a receita inteira atualizada. Seu formato de resposta deve ser EXCLUSIVAMENTE em texto e formatação Markdown (títulos, listas, negrito).',
 		].join('\n');
 	}
 
 	private buildUserPrompt(recipe: RecipeAssistantRecipe, dto: AskRecipeAssistantDto) {
 		return [
-			`Mensagem do usuário: ${dto.message}`,
-			`Preferência de medidas: ${dto.measurePreference}`,
-			'Receita atual em JSON:',
+			'Contexto da receita atual (use apenas como referência de leitura):',
 			JSON.stringify(this.serializeRecipe(recipe), null, 2),
+			'---',
+			`Preferência de medidas do usuário: ${dto.measurePreference}`,
+			`Pergunta/Mensagem do usuário: ${dto.message}`,
 		].join('\n\n');
 	}
 
