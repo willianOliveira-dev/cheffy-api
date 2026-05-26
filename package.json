@@ -13,6 +13,7 @@
 		"prepare": "husky",
 		"db:generate": "pnpm exec dotenv -e .env -- prisma generate",
 		"db:migrate": "pnpm exec dotenv -e .env -- prisma migrate dev",
+		"db:seed": "pnpm exec dotenv -e .env -- tsx prisma/seed.ts",
 		"db:studio": "pnpm exec dotenv -e .env -- prisma studio",
 		"db:reset": "pnpm exec dotenv -e .env -- prisma migrate reset"
 	},
