@@ -40,6 +40,12 @@ type SeedStep = {
 	stepTime: number;
 };
 
+type SeedRecipeSection = {
+	title: string;
+	ingredients: RecipeIngredient[];
+	steps: SeedStep[];
+};
+
 type SeedRecipe = {
 	title: string;
 	slug: string;
@@ -55,6 +61,7 @@ type SeedRecipe = {
 	isFeatured?: boolean;
 	ingredients: RecipeIngredient[];
 	steps: SeedStep[];
+	sections?: SeedRecipeSection[];
 };
 
 const nutritionSource = 'Seed Cheffy aproximado';
@@ -62,6 +69,7 @@ const unsplashImage = (photoId: string) =>
 	`https://images.unsplash.com/${photoId}?auto=format&fit=crop&w=1200&q=80`;
 const ingredientImage = (photoId: string) =>
 	`https://images.unsplash.com/${photoId}?auto=format&fit=crop&w=640&q=80`;
+const wikimediaImage = (path: string) => `https://upload.wikimedia.org/wikipedia/commons/${path}`;
 const chefImage = unsplashImage('photo-1577219491135-ce391730fb2c');
 const sourceImage = (query: string) => recipeImageFallbacks[query] ?? recipeImageFallbacks.food;
 
@@ -119,11 +127,11 @@ const categories = [
 
 const recipeImageFallbacks: Record<string, string> = {
 	food: unsplashImage('photo-1504674900247-0877df9cc836'),
-	'escondidinho carne seca': unsplashImage('photo-1604908176997-125f25cc6f3d'),
+	'escondidinho carne seca': wikimediaImage('1/19/Escondidinho_de_carne_seca.jpg'),
 	'mushroom risotto': unsplashImage('photo-1476124369491-e7addf5db371'),
 	'lasagna bolognese': unsplashImage('photo-1574894709920-11b28e7367e3'),
-	'spaghetti tomato basil': unsplashImage('photo-1473093295043-cdd812d0e601'),
-	'beef pancake': unsplashImage('photo-1529042410759-befb1204b468'),
+	'spaghetti tomato basil': unsplashImage('photo-1551892374-ecf8754cf8b0'),
+	'beef pancake': wikimediaImage('c/c9/Crepe_fourree_p1040332.jpg'),
 	'spinach cheese omelette': unsplashImage('photo-1510693206972-df098062cb71'),
 	'tapioca cheese tomato': unsplashImage('photo-1525351484163-7529414344d8'),
 	'chicken sweet potato bowl': unsplashImage('photo-1546069901-ba9599a7e63c'),
@@ -137,17 +145,94 @@ const recipeImageFallbacks: Record<string, string> = {
 	'cuscuz paulista tuna': unsplashImage('photo-1540189549336-e6e99c3679fe'),
 	'banana oat cake': unsplashImage('photo-1578985545062-69928b1d9587'),
 	'dark chocolate mousse': unsplashImage('photo-1511381939415-e44015466834'),
+	'pizza margherita': unsplashImage('photo-1513104890138-7c749659a591'),
 };
 
-const recipeImagesBySlug = {
-	'moqueca-baiana-de-peixe-e-camarao': unsplashImage('photo-1534766555764-ce878a5e3a2b'),
-	'feijoada-brasileira-completa': unsplashImage('photo-1544025162-d76694265947'),
-	'pao-de-queijo-mineiro': unsplashImage('photo-1509440159596-0249088772ff'),
-	'brigadeiro-tradicional': unsplashImage('photo-1606313564200-e75d5e30476c'),
-	'strogonoff-de-frango-cremoso': unsplashImage('photo-1604908176997-125f25cc6f3d'),
-	'salpicao-de-frango-tradicional': unsplashImage('photo-1512621776951-a57141f2eefd'),
-	'bobo-de-camarao-baiano': unsplashImage('photo-1534766555764-ce878a5e3a2b'),
-} satisfies Record<string, string>;
+const recipeImagesBySlug: Record<string, string> = {
+	'moqueca-baiana-de-peixe-e-camarao': wikimediaImage('8/84/MOQUECAB.jpg'),
+	'feijoada-brasileira-completa': wikimediaImage('9/95/Feijoada_%C3%A0_brasileira_3.jpg'),
+	'pao-de-queijo-mineiro': wikimediaImage(
+		'5/50/P%C3%A3o_de_Queijo_%28Brazilian_Cheese_Bread%29.jpg',
+	),
+	'brigadeiro-tradicional': wikimediaImage('b/b0/BrigadeiroBrazil.jpg'),
+	'strogonoff-de-frango-cremoso': wikimediaImage('b/b4/Chicken_stroganoff.jpg'),
+	'salpicao-de-frango-tradicional': wikimediaImage('7/73/Salpic%C3%A3o_de_frango.jpg'),
+	'bobo-de-camarao-baiano': wikimediaImage('2/2f/Bob%C3%B3_de_camar%C3%A3o.jpg'),
+	'escondidinho-de-carne-seca': wikimediaImage('1/19/Escondidinho_de_carne_seca.jpg'),
+	'risoto-de-cogumelos': unsplashImage('photo-1476124369491-e7addf5db371'),
+	'lasanha-a-bolonhesa': unsplashImage('photo-1574894709920-11b28e7367e3'),
+	'espaguete-ao-molho-de-tomate-e-manjericao': unsplashImage('photo-1551892374-ecf8754cf8b0'),
+	'panqueca-de-carne-moida': wikimediaImage('c/c9/Crepe_fourree_p1040332.jpg'),
+	'omelete-de-espinafre-e-queijo': unsplashImage('photo-1510693206972-df098062cb71'),
+	'tapioca-de-queijo-minas-com-tomate': unsplashImage('photo-1525351484163-7529414344d8'),
+	'bowl-fitness-de-frango-e-batata-doce': unsplashImage('photo-1546069901-ba9599a7e63c'),
+	'salada-tropical-com-frango': unsplashImage('photo-1512621776951-a57141f2eefd'),
+	'sopa-cremosa-de-abobora': unsplashImage('photo-1476718406336-bb5a9690ee2a'),
+	'caldo-verde-com-couve': unsplashImage('photo-1547592166-23ac45744acd'),
+	'curry-vegano-de-grao-de-bico': unsplashImage('photo-1604329760661-e71dc83f8f26'),
+	'berinjela-a-parmegiana': unsplashImage('photo-1625937286074-9ca519d5d9df'),
+	'tilapia-assada-com-legumes': unsplashImage('photo-1519708227418-c8fd9a32b7a2'),
+	'salmao-com-crosta-de-castanha': unsplashImage('photo-1467003909585-2f8a72700288'),
+	'cuscuz-paulista-de-atum': wikimediaImage('3/35/CuscuzPaulista.jpg'),
+	'bolo-de-banana-com-aveia': unsplashImage('photo-1578985545062-69928b1d9587'),
+	'mousse-de-chocolate-meio-amargo': unsplashImage('photo-1511381939415-e44015466834'),
+	'pizza-margherita-caseira': unsplashImage('photo-1513104890138-7c749659a591'),
+};
+
+const recipeDescriptionsBySlug: Record<string, string> = {
+	'moqueca-baiana-de-peixe-e-camarao':
+		'Moqueca de panela cheia, com peixe macio, camarão e um caldo perfumado de dendê, leite de coco e coentro. Fica ótima com arroz branco e farofa simples.',
+	'feijoada-brasileira-completa':
+		'Feijoada para almoço sem pressa, encorpada e bem temperada, com feijão preto, carnes defumadas e aquele caldo que pede couve, arroz e laranja ao lado.',
+	'pao-de-queijo-mineiro':
+		'Pão de queijo de casca levemente crocante e miolo puxa-puxa, feito com a mistura de polvilhos que deixa a fornada mais saborosa.',
+	'brigadeiro-tradicional':
+		'Brigadeiro clássico de festa, cozido no ponto certo para enrolar sem ficar duro. Simples, brilhante e coberto com granulado.',
+	'strogonoff-de-frango-cremoso':
+		'Strogonoff de frango bem cremoso, com molho de tomate, champignon e creme de leite. É daqueles pratos rápidos que resolvem o almoço da semana.',
+	'salpicao-de-frango-tradicional':
+		'Salpicão frio, colorido e crocante, com frango desfiado, legumes, maçã verde e batata palha. Funciona muito bem em almoço de família.',
+	'bobo-de-camarao-baiano':
+		'Bobó de camarão com creme de mandioca aveludado, leite de coco e dendê na medida. O camarão entra no final para ficar suculento.',
+	'escondidinho-de-carne-seca':
+		'Escondidinho com purê de mandioca macio, carne seca refogada e queijo gratinado por cima. Comfort food brasileira sem complicar.',
+	'risoto-de-cogumelos':
+		'Risoto cremoso de cogumelos, finalizado com manteiga e parmesão. O arroz fica no ponto certo, úmido e com bastante sabor.',
+	'lasanha-a-bolonhesa':
+		'Lasanha de forno com camadas generosas de bolonhesa, muçarela e parmesão. Boa para servir em travessa e repetir sem cerimônia.',
+	'espaguete-ao-molho-de-tomate-e-manjericao':
+		'Espaguete simples e perfumado, com molho de tomate, alho, azeite e manjericão fresco. Uma massa rápida para o dia a dia.',
+	'panqueca-de-carne-moida':
+		'Panqueca recheada com carne moída bem refogada, coberta com molho de tomate e pronta para gratinar. Tem cara de almoço de casa.',
+	'omelete-de-espinafre-e-queijo':
+		'Omelete macia com espinafre, tomate e queijo minas. Fica pronta rápido e sustenta bem sem pesar.',
+	'tapioca-de-queijo-minas-com-tomate':
+		'Tapioca de frigideira com queijo minas, tomate e manjericão. Leve, sem glúten e boa para café da manhã ou lanche.',
+	'bowl-fitness-de-frango-e-batata-doce':
+		'Bowl completo com frango, batata-doce e legumes, montado para uma refeição prática, equilibrada e fácil de levar.',
+	'salada-tropical-com-frango':
+		'Salada fresca com frango, folhas, manga e abacate. O molho de limão e azeite deixa tudo mais vivo sem esconder os ingredientes.',
+	'sopa-cremosa-de-abobora':
+		'Sopa de abóbora cremosa e levemente adocicada, com alho, cebola e um toque de creme de leite no final.',
+	'caldo-verde-com-couve':
+		'Caldo verde simples, com batata batida, couve fininha e calabresa dourada. Fica encorpado sem precisar de muitos ingredientes.',
+	'curry-vegano-de-grao-de-bico':
+		'Curry vegano de grão-de-bico com leite de coco, tomate e espinafre. É aromático, nutritivo e fica ótimo com arroz.',
+	'berinjela-a-parmegiana':
+		'Berinjela à parmegiana com molho de tomate, queijo derretido e forno quente para dourar. Uma versão vegetariana bem servida.',
+	'tilapia-assada-com-legumes':
+		'Tilápia assada com legumes e limão, leve e direta ao ponto. Boa para quando a ideia é comer bem sem sujar muita panela.',
+	'salmao-com-crosta-de-castanha':
+		'Salmão assado com crosta de castanha-de-caju, servido com brócolis. A cobertura fica crocante e o peixe continua úmido.',
+	'cuscuz-paulista-de-atum':
+		'Cuscuz paulista de atum bem úmido, com legumes e molho de tomate. Depois de desenformado, fica bonito para servir em fatias.',
+	'bolo-de-banana-com-aveia':
+		'Bolo de banana com aveia, mel e canela, sem excesso de açúcar. Bom para lanche da tarde e para aproveitar banana madura.',
+	'mousse-de-chocolate-meio-amargo':
+		'Mousse de chocolate meio amargo, cremosa e intensa, feita para servir gelada em porções pequenas.',
+	'pizza-margherita-caseira':
+		'Pizza margherita caseira com massa fermentada, molho de tomate simples, muçarela e manjericão fresco. Boa para mostrar as seções de massa, molho e montagem no detalhe da receita.',
+};
 
 const ingredientImagesByCategory = {
 	cereais: ingredientImage('photo-1536304993881-ff6e9eefa2a6'),
@@ -157,6 +242,7 @@ const ingredientImagesByCategory = {
 	açúcares: ingredientImage('photo-1582049169738-4c1f4f6aa141'),
 	laticínios: ingredientImage('photo-1628088062854-d1870b4553da'),
 	'laticínios e similares': ingredientImage('photo-1585238342028-4bbc1a83f7d6'),
+	líquidos: ingredientImage('photo-1548839140-29a749e1cf4d'),
 	queijos: ingredientImage('photo-1486297678162-eb2a19b0a32d'),
 	óleos: ingredientImage('photo-1474979266404-7eaacbcd87c5'),
 	ovos: ingredientImage('photo-1582722872445-44dc5f7e3c8f'),
@@ -339,6 +425,70 @@ const ingredients: SeedIngredient[] = [
 	n('Louro', 'temperos', 313, 75, 0, 0, 7.6, 8.4, 2.3, 26, 23),
 ];
 
+const pizzaSections: SeedRecipeSection[] = [
+	{
+		title: 'Massa',
+		ingredients: [
+			{ name: 'Farinha de trigo', grams: 500 },
+			{ name: 'Água', grams: 300 },
+			{ name: 'Fermento biológico seco', grams: 7 },
+			{ name: 'Sal', grams: 8 },
+			{ name: 'Azeite de oliva', grams: 20 },
+		],
+		steps: [
+			{
+				description: 'Misture farinha, água, fermento, sal e azeite até formar uma massa uniforme.',
+				stepTime: 8,
+			},
+			{
+				description: 'Sove a massa até ficar lisa e deixe descansar coberta até ganhar volume.',
+				stepTime: 25,
+			},
+			{
+				description: 'Abra a massa em uma forma untada, deixando a borda um pouco mais alta.',
+				stepTime: 5,
+			},
+		],
+	},
+	{
+		title: 'Molho',
+		ingredients: [
+			{ name: 'Molho de tomate', grams: 240 },
+			{ name: 'Alho', grams: 6 },
+			{ name: 'Azeite de oliva', grams: 10 },
+			{ name: 'Manjericão', grams: 8 },
+		],
+		steps: [
+			{
+				description:
+					'Aqueça o azeite, perfume com alho e misture o molho de tomate com manjericão.',
+				stepTime: 7,
+			},
+		],
+	},
+	{
+		title: 'Cobertura e forno',
+		ingredients: [
+			{ name: 'Muçarela', grams: 300 },
+			{ name: 'Tomate', grams: 200 },
+			{ name: 'Manjericão', grams: 10 },
+			{ name: 'Azeite de oliva', grams: 8 },
+		],
+		steps: [
+			{
+				description:
+					'Espalhe o molho sobre a massa, cubra com muçarela, tomate e um fio de azeite.',
+				stepTime: 5,
+			},
+			{
+				description:
+					'Asse em forno bem quente até a massa dourar e finalize com manjericão fresco.',
+				stepTime: 10,
+			},
+		],
+	},
+];
+
 const recipes: SeedRecipe[] = [
 	r(
 		'Moqueca baiana de peixe e camarão',
@@ -406,6 +556,7 @@ const recipes: SeedRecipe[] = [
 			['Queijo minas curado ralado', 250],
 			['Sal', 5],
 		],
+		true,
 	),
 	r(
 		'Brigadeiro tradicional',
@@ -446,6 +597,7 @@ const recipes: SeedRecipe[] = [
 			['Ketchup', 30],
 			['Óleo', 10],
 		],
+		true,
 	),
 	r(
 		'Salpicão de frango tradicional',
@@ -489,6 +641,7 @@ const recipes: SeedRecipe[] = [
 			['Coentro', 30],
 			['Alho', 15],
 		],
+		true,
 	),
 	r(
 		'Escondidinho de carne seca',
@@ -530,6 +683,7 @@ const recipes: SeedRecipe[] = [
 			['Parmesão ralado', 80],
 			['Azeite de oliva', 20],
 		],
+		true,
 	),
 	r(
 		'Lasanha à bolonhesa',
@@ -551,7 +705,25 @@ const recipes: SeedRecipe[] = [
 			['Parmesão ralado', 80],
 			['Azeite de oliva', 20],
 		],
+		true,
 	),
+	{
+		title: 'Pizza margherita caseira',
+		slug: toSlug('Pizza margherita caseira'),
+		category: 'Massas',
+		imageUrl: recipeImagesBySlug['pizza-margherita-caseira'] ?? sourceImage('pizza margherita'),
+		prepTime: 45,
+		cookTime: 15,
+		yieldAmount: 8,
+		yieldUnit: YieldUnit.SLICES,
+		difficulty: DifficultyLevel.MEDIUM,
+		tags: ['Italiana', 'Massa', 'Forno', 'Vegetariana', 'Festa'],
+		isFeatured: true,
+		description: buildDescription('Pizza margherita caseira', ['Italiana', 'Massa', 'Forno']),
+		ingredients: pizzaSections.flatMap((section) => section.ingredients),
+		steps: pizzaSections.flatMap((section) => section.steps),
+		sections: pizzaSections,
+	},
 	r(
 		'Espaguete ao molho de tomate e manjericão',
 		'Massas',
@@ -790,6 +962,7 @@ const recipes: SeedRecipe[] = [
 			['Brócolis', 250],
 			['Sal', 4],
 		],
+		true,
 	),
 	r(
 		'Cuscuz paulista de atum',
@@ -852,8 +1025,12 @@ const recipes: SeedRecipe[] = [
 	),
 ];
 
-// Extra ingredient used by the banana cake. Kept near the recipe list so it is easy to notice.
-ingredients.push(n('Canela em pó', 'temperos', 247, 81, 2.2, 0, 4, 1.2, 0.3, 53, 10));
+// Extra ingredients used by recipes that are easier to notice near the recipe list.
+ingredients.push(
+	n('Canela em pó', 'temperos', 247, 81, 2.2, 0, 4, 1.2, 0.3, 53, 10),
+	n('Água', 'líquidos', 0, 0, 0, 0, 0, 0, 0, 0, 0),
+	n('Fermento biológico seco', 'confeitaria', 325, 41, 0, 0, 40, 7.6, 1.5, 27, 51),
+);
 
 function r(
 	title: string,
@@ -869,11 +1046,16 @@ function r(
 	isFeatured = false,
 ): SeedRecipe {
 	const slug = toSlug(title);
+	const ingredients = ingredientPairs.map(([name, grams, text]) => ({
+		name,
+		grams,
+		text: text ?? formatIngredientText(name, grams),
+	}));
 	return {
 		title,
 		slug,
 		category,
-		imageUrl: recipeImagesBySlug[slug as keyof typeof recipeImagesBySlug] ?? image,
+		imageUrl: recipeImagesBySlug[slug] ?? image,
 		prepTime,
 		cookTime,
 		yieldAmount,
@@ -882,11 +1064,7 @@ function r(
 		tags,
 		isFeatured,
 		description: buildDescription(title, tags),
-		ingredients: ingredientPairs.map(([name, grams, text]) => ({
-			name,
-			grams,
-			text: text ?? formatIngredientText(name, grams),
-		})),
+		ingredients,
 		steps: buildSteps(title, prepTime + cookTime),
 	};
 }
@@ -901,6 +1079,7 @@ async function main() {
 	for (const recipe of recipes) {
 		const categoryId = requireMapValue(categoryByName, recipe.category, 'Categoria');
 		const tagIds = recipe.tags.map((tag) => requireMapValue(tagByName, tag, 'Tag'));
+		const seedSections = getRecipeSeedSections(recipe);
 		const sections = buildSections(recipe, ingredientByName);
 		const calculatedNutritionLabel = await calculator.calculateForRecipe({
 			title: recipe.title,
@@ -912,26 +1091,24 @@ async function main() {
 			difficulty: recipe.difficulty,
 			categoryId,
 			tagIds,
-			sections: [
-				{
-					title: 'Ingredientes e preparo',
-					position: 1,
-					ingredients: recipe.ingredients.map((ingredient, index) => ({
-						ingredientId: requireMapValue(ingredientByName, ingredient.name, 'Ingrediente'),
-						displayText: ingredient.text ?? formatIngredientText(ingredient.name, ingredient.grams),
-						quantity: formatQuantity(ingredient.grams),
-						quantityInGrams: ingredient.grams,
-						unit: ingredient.unit ?? MeasurementUnit.G,
-						notes: ingredient.notes,
-						position: index + 1,
-					})),
-					steps: recipe.steps.map((step, index) => ({
-						description: step.description,
-						position: index + 1,
-						stepTime: step.stepTime,
-					})),
-				},
-			],
+			sections: seedSections.map((section, sectionIndex) => ({
+				title: section.title,
+				position: sectionIndex + 1,
+				ingredients: section.ingredients.map((ingredient, index) => ({
+					ingredientId: requireMapValue(ingredientByName, ingredient.name, 'Ingrediente'),
+					displayText: ingredient.text ?? formatIngredientText(ingredient.name, ingredient.grams),
+					quantity: formatQuantity(ingredient.grams),
+					quantityInGrams: ingredient.grams,
+					unit: ingredient.unit ?? MeasurementUnit.G,
+					notes: ingredient.notes,
+					position: index + 1,
+				})),
+				steps: section.steps.map((step, index) => ({
+					description: step.description,
+					position: index + 1,
+					stepTime: step.stepTime,
+				})),
+			})),
 		});
 		const nutritionLabel = calculatedNutritionLabel
 			? { ...calculatedNutritionLabel, isApproximate: true }
@@ -1090,32 +1267,42 @@ async function seedIngredients() {
 }
 
 function buildSections(recipe: SeedRecipe, ingredientByName: Map<string, string>) {
-	return [
-		{
-			title: 'Ingredientes e preparo',
-			position: 1,
-			ingredients: {
-				create: recipe.ingredients.map((ingredient, index) => ({
-					displayText: ingredient.text ?? formatIngredientText(ingredient.name, ingredient.grams),
-					quantity: formatQuantity(ingredient.grams),
-					quantityInGrams: ingredient.grams,
-					unit: ingredient.unit ?? MeasurementUnit.G,
-					notes: ingredient.notes ?? null,
-					position: index + 1,
-					ingredient: {
-						connect: { id: requireMapValue(ingredientByName, ingredient.name, 'Ingrediente') },
-					},
-				})),
-			},
-			steps: {
-				create: recipe.steps.map((step, index) => ({
-					description: step.description,
-					position: index + 1,
-					stepTime: step.stepTime,
-				})),
-			},
+	return getRecipeSeedSections(recipe).map((section, sectionIndex) => ({
+		title: section.title,
+		position: sectionIndex + 1,
+		ingredients: {
+			create: section.ingredients.map((ingredient, index) => ({
+				displayText: ingredient.text ?? formatIngredientText(ingredient.name, ingredient.grams),
+				quantity: formatQuantity(ingredient.grams),
+				quantityInGrams: ingredient.grams,
+				unit: ingredient.unit ?? MeasurementUnit.G,
+				notes: ingredient.notes ?? null,
+				position: index + 1,
+				ingredient: {
+					connect: { id: requireMapValue(ingredientByName, ingredient.name, 'Ingrediente') },
+				},
+			})),
 		},
-	];
+		steps: {
+			create: section.steps.map((step, index) => ({
+				description: step.description,
+				position: index + 1,
+				stepTime: step.stepTime,
+			})),
+		},
+	}));
+}
+
+function getRecipeSeedSections(recipe: SeedRecipe): SeedRecipeSection[] {
+	return (
+		recipe.sections ?? [
+			{
+				title: 'Ingredientes e preparo',
+				ingredients: recipe.ingredients,
+				steps: recipe.steps,
+			},
+		]
+	);
 }
 
 function buildNutritionData(ingredient: SeedIngredient) {
@@ -1141,9 +1328,11 @@ function getIngredientImage(ingredient: SeedIngredient) {
 	);
 }
 
-function buildDescription(title: string, recipeTags: string[]) {
-	const tagText = recipeTags.slice(0, 3).join(', ').toLowerCase();
-	return `${title} preparado com ingredientes conhecidos e medidas em gramas para gerar tabela nutricional aproximada. Receita ${tagText}, pensada para testar a experiência completa do Cheffy.`;
+function buildDescription(title: string, _recipeTags: string[]) {
+	return (
+		recipeDescriptionsBySlug[toSlug(title)] ??
+		`${title} caseiro, com preparo direto e medidas em gramas para facilitar a cozinha do dia a dia.`
+	);
 }
 
 function buildSteps(title: string, totalTime: number): SeedStep[] {
