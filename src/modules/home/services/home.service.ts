@@ -5,6 +5,8 @@ import type { FindCategoryRecipesDto } from '../schemas/dtos/find-category-recip
 const HOME_SECTION_LIMIT = 10;
 const WEEKLY_HIGHLIGHT_DAYS = 7;
 
+type FavoriteAwareRecipe<T extends { id: string }> = T & { isFavorited: boolean };
+
 export class HomeService {
 	constructor(private readonly repository: HomeRepository) {}
 
@@ -33,8 +35,8 @@ export class HomeService {
 			favoritedIds = await this.repository.getFavoritedIds(allRecipeIds, userId);
 		}
 
-		const mapFavorites = (recipes: any[]) =>
-			recipes.map((r) => ({ ...r, isFavorited: favoritedIds.has(r.id) }));
+		const mapFavorites = <T extends { id: string }>(recipes: T[]): FavoriteAwareRecipe<T>[] =>
+			recipes.map((recipe) => ({ ...recipe, isFavorited: favoritedIds.has(recipe.id) }));
 
 		return {
 			headerCategories,
@@ -60,7 +62,10 @@ export class HomeService {
 				items.map((r) => r.id),
 				userId,
 			);
-			mappedItems = items.map((r) => ({ ...r, isFavorited: favoritedIds.has(r.id) })) as any;
+			mappedItems = items.map((recipe) => ({
+				...recipe,
+				isFavorited: favoritedIds.has(recipe.id),
+			}));
 		}
 
 		return {
