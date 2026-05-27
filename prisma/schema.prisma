@@ -8,21 +8,21 @@ datasource db {
 }
 
 model User {
-  id            String   @id @default(uuid())
+  id            String  @id @default(uuid())
   name          String
-  email         String   @unique
-  emailVerified Boolean  @default(false)
+  email         String  @unique
+  emailVerified Boolean @default(false)
   image         String?
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  recipes       Recipe[]
-  favorites     Favorite[]
-  recipeViews   RecipeView[]
+  recipes     Recipe[]
+  favorites   Favorite[]
+  recipeViews RecipeView[]
 
-  sessions      Session[]
-  accounts      Account[]
+  sessions Session[]
+  accounts Account[]
 
   @@map("user")
 }
@@ -36,8 +36,8 @@ model Session {
   ipAddress String?
   userAgent String?
 
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([token])
   @@index([userId])
@@ -45,11 +45,11 @@ model Session {
 }
 
 model Account {
-  id                    String    @id
-  accountId             String
-  providerId            String
-  userId                String
-  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id         String @id
+  accountId  String
+  providerId String
+  userId     String
+  user       User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   accessToken           String?
   refreshToken          String?
@@ -59,8 +59,8 @@ model Account {
   scope                 String?
   password              String?
 
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId])
   @@map("account")
@@ -72,39 +72,39 @@ model Verification {
   value      String
   expiresAt  DateTime
 
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([identifier])
   @@map("verification")
 }
 
 model Category {
-  id          String   @id @default(uuid())
-  name        String   @unique @db.VarChar(65)
-  slug        String   @unique
-  description String?  @db.VarChar(250)
-  iconKey     String   @default("utensils") @db.VarChar(30)
-  imageUrl    String?
+  id            String  @id @default(uuid())
+  name          String  @unique @db.VarChar(65)
+  slug          String  @unique
+  description   String? @db.VarChar(250)
+  iconKey       String  @default("utensils") @db.VarChar(30)
+  imageUrl      String?
   imagePublicId String?
-  position    Int      @default(0)
+  position      Int     @default(0)
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  recipes     Recipe[]
+  recipes Recipe[]
 
   @@index([slug])
   @@map("categories")
 }
 
 model Ingredient {
-  id        String   @id @default(uuid())
-  name      String   @unique @db.VarChar(150)
-  slug      String   @unique
-  imageUrl  String?
+  id            String  @id @default(uuid())
+  name          String  @unique @db.VarChar(150)
+  slug          String  @unique
+  imageUrl      String?
   imagePublicId String?
-  category  String?  @db.VarChar(50)
+  category      String? @db.VarChar(50)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -118,7 +118,7 @@ model Ingredient {
 model IngredientNutrition {
   id String @id @default(uuid())
 
-  ingredientId String @unique
+  ingredientId String     @unique
   ingredient   Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
 
   energyKcalPer100g    Float @default(0)
@@ -141,24 +141,24 @@ model IngredientNutrition {
 }
 
 model Recipe {
-  id          String  @id @default(uuid())
-  title       String  @db.VarChar(150)
-  slug        String  @unique
-  description String  @db.VarChar(500)
-  imageUrl    String?
+  id            String  @id @default(uuid())
+  title         String  @db.VarChar(150)
+  slug          String  @unique
+  description   String  @db.VarChar(500)
+  imageUrl      String?
   imagePublicId String?
 
-  prepTime    Int
-  cookTime    Int
-  totalTime   Int     @default(0)
+  prepTime  Int
+  cookTime  Int
+  totalTime Int @default(0)
 
   yieldAmount Int
   yieldUnit   YieldUnit @default(PORTIONS)
 
-  difficulty  DifficultyLevel @default(MEDIUM)
+  difficulty DifficultyLevel @default(MEDIUM)
 
-  isPublished Boolean @default(false)
-  isFeatured  Boolean @default(false)
+  isPublished Boolean   @default(false)
+  isFeatured  Boolean   @default(false)
   deletedAt   DateTime?
 
   views          Int @default(0)
@@ -195,6 +195,10 @@ model RecipeNutritionLabel {
   totalWeightInGrams   Float
   servingWeightInGrams Float
   servingsPerRecipe    Int?
+  servingUnit          String? @db.VarChar(40)
+  servingUnitPlural    String? @db.VarChar(40)
+  servingDescription   String? @db.VarChar(100)
+  servingsDescription  String? @db.VarChar(100)
 
   energyKcalPer100g    Float
   carbohydratesPer100g Float
@@ -249,7 +253,6 @@ model RecipeSection {
   @@map("recipe_sections")
 }
 
-
 model RecipeSectionIngredient {
   id String @id @default(uuid())
 
@@ -274,7 +277,6 @@ model RecipeSectionIngredient {
   @@map("recipe_section_ingredients")
 }
 
-
 model PreparationStep {
   id          String  @id @default(uuid())
   description String
@@ -290,9 +292,9 @@ model PreparationStep {
 }
 
 model Tag {
-  id      String @id @default(uuid())
-  name    String @unique
-  slug    String @unique
+  id   String @id @default(uuid())
+  name String @unique
+  slug String @unique
 
   recipes RecipeTag[]
 
@@ -331,7 +333,7 @@ model RecipeView {
   createdAt DateTime @default(now())
 
   recipeId String
-  recipe   Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  recipe   Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
 
   userId String?
   user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)

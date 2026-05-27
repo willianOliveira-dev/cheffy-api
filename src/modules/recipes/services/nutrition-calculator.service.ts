@@ -13,6 +13,23 @@ const DAILY_VALUES = {
 	sodiumMg: 2300,
 };
 
+type ServingUnitDefinition = {
+	singular: string;
+	plural: string;
+};
+
+const SERVING_UNITS: Record<YieldUnit, ServingUnitDefinition | null> = {
+	[YieldUnit.PORTIONS]: { singular: 'porção', plural: 'porções' },
+	[YieldUnit.PEOPLE]: { singular: 'porção', plural: 'porções' },
+	[YieldUnit.UNITS]: { singular: 'unidade', plural: 'unidades' },
+	[YieldUnit.SLICES]: { singular: 'fatia', plural: 'fatias' },
+	[YieldUnit.PIECES]: { singular: 'pedaço', plural: 'pedaços' },
+	[YieldUnit.CUPS]: { singular: 'xícara', plural: 'xícaras' },
+	[YieldUnit.GLASSES]: { singular: 'copo', plural: 'copos' },
+	[YieldUnit.PLATES]: { singular: 'prato fundo', plural: 'pratos fundos' },
+	[YieldUnit.TO_TASTE]: null,
+};
+
 export class NutritionCalculatorService {
 	constructor(private readonly prisma: PrismaClient) {}
 
@@ -108,11 +125,17 @@ export class NutritionCalculatorService {
 		const servingWeightInGrams = totalWeightInGrams / servingsPerRecipe;
 		const per100gMultiplier = 100 / totalWeightInGrams;
 		const perServingMultiplier = 1 / servingsPerRecipe;
+		const servingPresentation = buildServingPresentation(
+			dto.yieldUnit,
+			servingsPerRecipe,
+			servingWeightInGrams,
+		);
 
 		return {
 			totalWeightInGrams,
 			servingWeightInGrams,
 			servingsPerRecipe,
+			...servingPresentation,
 			isApproximate: hasMissingNutrition,
 
 			energyKcalPer100g: totalEnergyKcal * per100gMultiplier,
@@ -152,4 +175,42 @@ export class NutritionCalculatorService {
 			sodiumDailyValuePercent: ((sodiumMg * perServingMultiplier) / DAILY_VALUES.sodiumMg) * 100,
 		};
 	}
+}
+
+function buildServingPresentation(
+	yieldUnit: YieldUnit | undefined,
+	servingsPerRecipe: number,
+	servingWeightInGrams: number,
+) {
+	const servingUnit = SERVING_UNITS[yieldUnit ?? YieldUnit.PORTIONS];
+
+	if (!servingUnit) {
+		return {
+			servingUnit: null,
+			servingUnitPlural: null,
+			servingDescription: null,
+			servingsDescription: null,
+		};
+	}
+
+	const servingsUnitText = servingsPerRecipe === 1 ? servingUnit.singular : servingUnit.plural;
+
+	return {
+		servingUnit: servingUnit.singular,
+		servingUnitPlural: servingUnit.plural,
+		servingDescription: `1 ${servingUnit.singular} (${formatServingWeight(servingWeightInGrams)})`,
+		servingsDescription: `${servingsPerRecipe} ${servingsUnitText}`,
+	};
+}
+
+function formatServingWeight(weightInGrams: number) {
+	if (weightInGrams < 1) {
+		return `${roundToOneDecimal(weightInGrams)} g`;
+	}
+
+	return `${Math.round(weightInGrams)} g`;
+}
+
+function roundToOneDecimal(value: number) {
+	return Math.round(value * 10) / 10;
 }

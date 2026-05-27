@@ -12,6 +12,10 @@ import type { UpdateRecipeDto } from '../schemas/dtos/update-recipe.dto.js';
 import type { recipeSummaryResponseSchema } from '../schemas/responses/recipe.response.js';
 import type { NutritionCalculatorService } from './nutrition-calculator.service.js';
 
+type RecipeForNutritionCalculation = NonNullable<
+	Awaited<ReturnType<RecipesRepository['findById']>>
+>;
+
 export class RecipesService {
 	constructor(
 		private readonly repository: RecipesRepository,
@@ -90,8 +94,10 @@ export class RecipesService {
 	): Promise<Awaited<ReturnType<RecipesRepository['update']>>> {
 		const currentRecipe = await this.getById(id);
 		let nutritionData = null;
-		if (data.sections) {
-			nutritionData = await this.nutritionCalculator.calculateForRecipe(data);
+		if (data.sections || data.yieldAmount !== undefined || data.yieldUnit !== undefined) {
+			nutritionData = await this.nutritionCalculator.calculateForRecipe(
+				this.buildNutritionCalculationInput(currentRecipe, data),
+			);
 		}
 		const updatedRecipe = await this.repository.update(id, data, nutritionData);
 		await this.deleteReplacedImage(currentRecipe.imagePublicId, data.imagePublicId);
@@ -134,5 +140,40 @@ export class RecipesService {
 		if (nextImagePublicId === currentImagePublicId) return;
 
 		await this.storageService.deleteImageAsset(currentImagePublicId);
+	}
+
+	private buildNutritionCalculationInput(
+		currentRecipe: RecipeForNutritionCalculation,
+		data: UpdateRecipeDto,
+	): UpdateRecipeDto {
+		return {
+			yieldAmount: data.yieldAmount ?? currentRecipe.yieldAmount,
+			yieldUnit: data.yieldUnit ?? currentRecipe.yieldUnit,
+			sections: data.sections ?? this.mapCurrentSectionsForNutrition(currentRecipe),
+		};
+	}
+
+	private mapCurrentSectionsForNutrition(
+		currentRecipe: RecipeForNutritionCalculation,
+	): NonNullable<UpdateRecipeDto['sections']> {
+		return currentRecipe.sections.map((section) => ({
+			title: section.title,
+			position: section.position,
+			ingredients: section.ingredients.map((ingredient) => ({
+				displayText: ingredient.displayText,
+				...(ingredient.quantity !== null ? { quantity: ingredient.quantity } : {}),
+				quantityInGrams: ingredient.quantityInGrams,
+				unit: ingredient.unit,
+				...(ingredient.notes !== null ? { notes: ingredient.notes } : {}),
+				position: ingredient.position,
+				ingredientId: ingredient.ingredientId,
+			})),
+			steps: section.steps.map((step) => ({
+				description: step.description,
+				position: step.position,
+				...(step.stepTime !== null ? { stepTime: step.stepTime } : {}),
+				...(step.mediaUrl !== null ? { mediaUrl: step.mediaUrl } : {}),
+			})),
+		}));
 	}
 }
