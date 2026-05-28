@@ -1,6 +1,4 @@
-import type { Prisma } from '@prisma/client';
 import type { z } from 'zod';
-import { prisma } from '@/lib/db/prisma.js';
 import { StorageService } from '@/modules/storage/services/storage.service.js';
 import { BadRequestError, NotFoundError } from '@/shared/errors/app.error.js';
 import type { PaginatedResponse } from '@/shared/types/paginated-response.js';
@@ -59,20 +57,7 @@ export class RecipesService {
 		}
 		const opts = parseResult.data;
 
-		const where: Prisma.RecipeWhereInput = { deletedAt: null };
-		if (opts.categoryId) where.categoryId = opts.categoryId;
-		if (opts.tagId) where.tags = { some: { tagId: opts.tagId } };
-		if (opts.difficulty) where.difficulty = opts.difficulty;
-		if (opts.maxTotalTime) where.totalTime = { lte: opts.maxTotalTime };
-		if (opts.search) {
-			where.OR = [
-				{ title: { contains: opts.search, mode: 'insensitive' } },
-				{ description: { contains: opts.search, mode: 'insensitive' } },
-			];
-		}
-
-		const total = await prisma.recipe.count({ where });
-		const items = await this.repository.findAll(dto, userId);
+		const { items, total } = await this.repository.findAll(dto, userId);
 		const totalPages = Math.ceil(total / opts.limit);
 
 		return {

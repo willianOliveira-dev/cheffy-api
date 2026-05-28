@@ -192,18 +192,25 @@ export class RecipesRepository {
 			orderBy = { createdAt: 'asc' };
 		}
 
-		const recipes = await prisma.recipe.findMany({
-			where,
-			orderBy,
-			include: {
-				author: { select: { id: true, name: true } },
-				category: { select: { id: true, name: true, slug: true } },
-				tags: { include: { tag: { select: { name: true, slug: true } } } },
-			},
-		});
+		const skip = (opts.page - 1) * opts.limit;
+
+		const [recipes, total] = await Promise.all([
+			prisma.recipe.findMany({
+				where,
+				orderBy,
+				skip,
+				take: opts.limit,
+				include: {
+					author: { select: { id: true, name: true } },
+					category: { select: { id: true, name: true, slug: true } },
+					tags: { include: { tag: { select: { name: true, slug: true } } } },
+				},
+			}),
+			prisma.recipe.count({ where }),
+		]);
 
 		if (!userId || recipes.length === 0) {
-			return recipes;
+			return { items: recipes, total };
 		}
 
 		const favorites = await prisma.favorite.findMany({
@@ -216,10 +223,13 @@ export class RecipesRepository {
 
 		const favoritedIds = new Set(favorites.map((f) => f.recipeId));
 
-		return recipes.map((recipe) => ({
-			...recipe,
-			isFavorited: favoritedIds.has(recipe.id),
-		}));
+		return {
+			items: recipes.map((recipe) => ({
+				...recipe,
+				isFavorited: favoritedIds.has(recipe.id),
+			})),
+			total,
+		};
 	}
 
 	async update(
