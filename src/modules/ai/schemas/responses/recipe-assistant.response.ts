@@ -4,7 +4,7 @@ export const recipeAssistantResponseSchema = z
 	.object({
 		recipeId: z.string().uuid(),
 		answer: z.string(),
-		provider: z.literal('ollama'),
+		provider: z.literal('groq'),
 		model: z.string(),
 		createdAt: z.string().datetime(),
 	})

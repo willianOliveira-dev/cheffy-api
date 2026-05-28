@@ -45,7 +45,8 @@ const askRecipeAssistantRoute = createRoute({
 aiRoutes.openapi(askRecipeAssistantRoute, async (c) => {
 	const { recipeId } = c.req.valid('param');
 	const data = c.req.valid('json');
-	const result = await recipeAssistantController.ask(recipeId, data);
+	const { user } = c.get('session');
+	const result = await recipeAssistantController.ask(recipeId, data, user);
 	return c.json(recipeAssistantResponseSchema.parse(result), 200);
 });
 
@@ -68,12 +69,13 @@ aiRoutes.post(`${streamPath}/stream`, authenticateMiddleware, async (c) => {
 
 	const { recipeId } = paramsResult.data;
 	const dto = bodyResult.data;
+	const { user } = c.get('session');
 
 	return streamSSE(c, async (stream) => {
 		let tokenIndex = 0;
 
 		try {
-			for await (const token of recipeAssistantStreamService.stream(recipeId, dto)) {
+			for await (const token of recipeAssistantStreamService.stream(recipeId, dto, user)) {
 				await stream.writeSSE({
 					data: JSON.stringify({ t: token }),
 					event: 'token',
@@ -101,4 +103,3 @@ aiRoutes.post(`${streamPath}/stream`, authenticateMiddleware, async (c) => {
 		}
 	});
 });
-

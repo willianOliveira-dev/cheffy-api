@@ -18,9 +18,9 @@ export const envSchema = z.object({
 	CLOUDINARY_API_KEY: z.string(),
 	CLOUDINARY_API_SECRET: z.string(),
 	FRONTEND_URL: z.string(),
-	OLLAMA_BASE_URL: z.string().url().default('http://localhost:11434'),
-	OLLAMA_MODEL: z.string().default('llama3.2:3b'),
-	OLLAMA_TIMEOUT_MS: z.coerce.number().int().positive().default(30_000),
+	GROQ_API_KEY: z.string(),
+	GROQ_MODEL: z.string().default('llama-3.3-70b-versatile'),
+	GROQ_TIMEOUT_MS: z.coerce.number().int().positive().default(30_000),
 });
 
 export const env = envSchema.parse(process.env);
