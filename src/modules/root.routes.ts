@@ -2,6 +2,7 @@ import type { OpenAPIHono } from '@hono/zod-openapi';
 import { aiRoutes } from './ai/routes/ai.routes.js';
 import { authRoutes } from './auth/routes/auth.routes.js';
 import { categoriesRoutes } from './categories/routes/categories.routes.js';
+import { healthRoutes } from './health/routes/health.routes.js';
 import { homeRoutes } from './home/routes/home.routes.js';
 import { ingredientsRoutes } from './ingredients/routes/ingredients.routes.js';
 import { recipesRoutes } from './recipes/routes/recipes.routes.js';
@@ -14,6 +15,7 @@ export function registerRoutes(app: OpenAPIHono) {
 	const basePath = '/api/v1';
 
 	app.route('/', authRoutes);
+	app.route(basePath, healthRoutes);
 	app.route(basePath, homeRoutes);
 	app.route(basePath, recipesRoutes);
 	app.route(basePath, ingredientsRoutes);
