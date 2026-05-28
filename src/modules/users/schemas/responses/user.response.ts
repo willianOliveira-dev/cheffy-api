@@ -1,5 +1,5 @@
 import { z } from '@hono/zod-openapi';
-import { recipeSummaryResponseSchema } from '@/modules/recipes/schemas/responses/recipe.response.js';
+import { paginatedRecipeListResponseSchema } from '@/modules/recipes/schemas/responses/recipe.response.js';
 
 export const userResponseSchema = z
 	.object({
@@ -11,6 +11,5 @@ export const userResponseSchema = z
 	})
 	.openapi('User');
 
-export const userFavoriteRecipesResponseSchema = z
-	.array(recipeSummaryResponseSchema)
-	.openapi('UserFavoriteRecipes');
+export const userFavoriteRecipesResponseSchema =
+	paginatedRecipeListResponseSchema.openapi('UserFavoriteRecipes');
