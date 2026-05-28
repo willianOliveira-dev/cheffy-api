@@ -5,6 +5,7 @@
 		"dev": "pnpm exec dotenv -e .env -- tsx watch src/server.ts",
 		"build": "rimraf dist && tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
 		"start": "cross-env NODE_ENV=production node dist/server.js",
+		"start:local": "pnpm exec dotenv -e .env -- cross-env NODE_ENV=production node dist/server.js",
 		"typecheck": "tsc --noEmit",
 		"lint": "biome lint ./src",
 		"lint:fix": "biome lint --write ./src",
