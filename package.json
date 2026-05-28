@@ -13,9 +13,12 @@
 		"prepare": "husky",
 		"db:generate": "pnpm exec dotenv -e .env -- prisma generate",
 		"db:migrate": "pnpm exec dotenv -e .env -- prisma migrate dev",
+		"db:deploy": "prisma migrate deploy",
 		"db:seed": "pnpm exec dotenv -e .env -- tsx prisma/seed.ts",
+		"db:seed:deploy": "tsx prisma/seed.ts",
 		"db:studio": "pnpm exec dotenv -e .env -- prisma studio",
-		"db:reset": "pnpm exec dotenv -e .env -- prisma migrate reset"
+		"db:reset": "pnpm exec dotenv -e .env -- prisma migrate reset",
+		"render:start": "pnpm db:deploy && pnpm db:seed:deploy && pnpm start"
 	},
 	"engines": {
 		"node": ">=22.0.0",
