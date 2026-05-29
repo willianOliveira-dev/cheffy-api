@@ -84,8 +84,6 @@ const nutritionLabelFields = {
 	isApproximate: z.boolean(),
 };
 
-const nutritionLabelResponseSchema = z.object(nutritionLabelFields);
-
 export const recipeSectionIngredientResponseSchema = z
 	.object({
 		id: z.string().uuid(),
@@ -188,6 +186,6 @@ export const recipeResponseSchema = z
 		category: categoryResponseSchema.optional(),
 		tags: z.array(recipeTagResponseSchema).optional(),
 		sections: z.array(recipeSectionResponseSchema).optional(),
-		nutritionLabel: nutritionLabelResponseSchema.nullable().optional(),
+		nutritionLabel: z.object(nutritionLabelFields).nullable().optional(),
 	})
 	.openapi('Recipe');

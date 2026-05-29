@@ -16,7 +16,9 @@ const ingredientNutritionFields = {
 	source: z.string().nullable(),
 };
 
-export const ingredientNutritionResponseSchema = z.object(ingredientNutritionFields);
+export const ingredientNutritionResponseSchema = z
+	.object(ingredientNutritionFields)
+	.openapi('IngredientNutrition');
 
 export const ingredientResponseSchema = z
 	.object({
@@ -25,7 +27,7 @@ export const ingredientResponseSchema = z
 		slug: z.string(),
 		imageUrl: z.string().nullable(),
 		category: z.string().nullable(),
-		nutrition: ingredientNutritionResponseSchema.nullable().optional(),
+		nutrition: z.object(ingredientNutritionFields).nullable().optional(),
 	})
 	.openapi('Ingredient');
 
