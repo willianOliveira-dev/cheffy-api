@@ -10,6 +10,7 @@ export const auth = betterAuth({
   secret: env.BETTER_AUTH_SECRET,
   trustedOrigins: env.ALLOWED_ORIGINS,
   advanced: {
+    trustedProxyHeaders: true,
     defaultCookieAttributes: {
       sameSite: "none",
       secure: true,
