@@ -397,11 +397,13 @@ Variáveis críticas no Render:
 ```env
 NODE_ENV=production
 DATABASE_URL=postgresql://...
-BASE_URL=https://sua-api.onrender.com
-BETTER_AUTH_URL=https://sua-api.onrender.com
+BASE_URL=https://seu-frontend.vercel.app
+BETTER_AUTH_URL=https://seu-frontend.vercel.app
 ALLOWED_ORIGINS=https://seu-frontend.vercel.app
 FRONTEND_URL=https://seu-frontend.vercel.app
 ```
+
+> Quando o frontend usa rewrites para expor `/api/auth/*` e `/api/v1/*` pela Vercel, a URL pública do Better Auth deve ser a origem do frontend. Nesse cenário, registre no Google OAuth o callback `https://seu-frontend.vercel.app/api/auth/callback/google`; a Vercel encaminha essa rota para a API no Render.
 
 > Não coloque `DATABASE_URL`, `BETTER_AUTH_SECRET`, `GOOGLE_CLIENT_SECRET`, `CLOUDINARY_API_SECRET` ou `GROQ_API_KEY` no código. Use sempre o painel de variáveis do Render.
 
