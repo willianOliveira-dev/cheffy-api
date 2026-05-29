@@ -6,28 +6,24 @@ import { env } from '@/config/env.js';
 import { prisma } from '../db/prisma.js';
 
 export const auth = betterAuth({
-    baseURL: env.BETTER_AUTH_URL,
-    secret: env.BETTER_AUTH_SECRET,
-    trustedOrigins: env.ALLOWED_ORIGINS,
-    advanced: {
-        crossSubDomainCookies: {
-            enabled: true,
-        },
-        defaultCookieAttributes: {
-            sameSite: 'none',
-            secure: true,
-        },
-        disableOriginCheck: env.NODE_ENV !== 'production',
-        disableCSRFCheck: env.NODE_ENV !== 'production',
+  baseURL: env.BETTER_AUTH_URL,
+  secret: env.BETTER_AUTH_SECRET,
+  trustedOrigins: env.ALLOWED_ORIGINS,
+  advanced: {
+    defaultCookieAttributes: {
+      sameSite: "none",
+      secure: true,
+      partitioned: true,
     },
-    socialProviders: {
-        google: {
-            clientId: env.GOOGLE_CLIENT_ID,
-            clientSecret: env.GOOGLE_CLIENT_SECRET,
-        },
+    disableOriginCheck: env.NODE_ENV !== "production",
+    disableCSRFCheck: env.NODE_ENV !== "production",
+  },
+  socialProviders: {
+    google: {
+      clientId: env.GOOGLE_CLIENT_ID,
+      clientSecret: env.GOOGLE_CLIENT_SECRET,
     },
-    database: prismaAdapter(prisma, {
-        provider: 'postgresql',
-    }),
-    plugins: [openAPI(), localization({ defaultLocale: 'pt-BR' })],
+  },
+  database: prismaAdapter(prisma, { provider: "postgresql" }),
+  plugins: [openAPI(), localization({ defaultLocale: "pt-BR" })],
 });
