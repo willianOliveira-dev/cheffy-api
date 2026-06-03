@@ -72,6 +72,7 @@ const recipeAssistantSelect = {
 			servingUnitPlural: true,
 			servingDescription: true,
 			servingsDescription: true,
+			totalEnergyKcal: true,
 			energyKcalPer100g: true,
 			carbohydratesPer100g: true,
 			proteinPer100g: true,

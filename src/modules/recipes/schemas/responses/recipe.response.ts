@@ -53,6 +53,7 @@ const nutritionLabelFields = {
 	servingUnitPlural: z.string().nullable(),
 	servingDescription: z.string().nullable(),
 	servingsDescription: z.string().nullable(),
+	totalEnergyKcal: z.number(),
 	energyKcalPer100g: z.number(),
 	carbohydratesPer100g: z.number(),
 	totalSugarsPer100g: z.number().nullable(),

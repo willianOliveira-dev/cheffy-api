@@ -200,6 +200,7 @@ model RecipeNutritionLabel {
   servingDescription   String? @db.VarChar(100)
   servingsDescription  String? @db.VarChar(100)
 
+  totalEnergyKcal      Float
   energyKcalPer100g    Float
   carbohydratesPer100g Float
   totalSugarsPer100g   Float?

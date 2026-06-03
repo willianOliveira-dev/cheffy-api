@@ -138,6 +138,7 @@ export class NutritionCalculatorService {
 			...servingPresentation,
 			isApproximate: hasMissingNutrition,
 
+			totalEnergyKcal,
 			energyKcalPer100g: totalEnergyKcal * per100gMultiplier,
 			carbohydratesPer100g: totalCarbohydrates * per100gMultiplier,
 			totalSugarsPer100g: totalSugars * per100gMultiplier,
