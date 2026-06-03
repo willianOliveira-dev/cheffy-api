@@ -59,7 +59,6 @@ const recipeAssistantSelect = {
 				select: {
 					description: true,
 					position: true,
-					stepTime: true,
 				},
 			},
 		},

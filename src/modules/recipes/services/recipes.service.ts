@@ -124,6 +124,7 @@ export class RecipesService {
 		}
 		const updatedRecipe = await this.repository.update(id, data, nutritionData);
 		await this.deleteReplacedImage(currentRecipe.imagePublicId, data.imagePublicId);
+		await this.deleteRemovedStepImages(currentRecipe, data.sections);
 
 		return updatedRecipe;
 	}
@@ -136,6 +137,7 @@ export class RecipesService {
 		if (recipe.imagePublicId) {
 			await this.storageService.deleteImageAsset(recipe.imagePublicId);
 		}
+		await this.deleteStepImages(recipe);
 		return await this.repository.delete(id);
 	}
 
@@ -168,6 +170,44 @@ export class RecipesService {
 		await this.storageService.deleteImageAsset(currentImagePublicId);
 	}
 
+	private async deleteRemovedStepImages(
+		currentRecipe: RecipeForNutritionCalculation,
+		nextSections?: UpdateRecipeDto['sections'],
+	) {
+		if (!nextSections) return;
+
+		const nextStepImagePublicIds = new Set(
+			nextSections
+				.flatMap((section) => section.steps)
+				.map((step) => step.imagePublicId)
+				.filter((publicId): publicId is string => Boolean(publicId)),
+		);
+		const removedStepImagePublicIds = currentRecipe.sections
+			.flatMap((section) => section.steps)
+			.map((step) => step.imagePublicId)
+			.filter((publicId): publicId is string => Boolean(publicId))
+			.filter((publicId) => !nextStepImagePublicIds.has(publicId));
+
+		await this.deleteImages(removedStepImagePublicIds);
+	}
+
+	private async deleteStepImages(recipe: RecipeForNutritionCalculation) {
+		const stepImagePublicIds = recipe.sections
+			.flatMap((section) => section.steps)
+			.map((step) => step.imagePublicId)
+			.filter((publicId): publicId is string => Boolean(publicId));
+
+		await this.deleteImages(stepImagePublicIds);
+	}
+
+	private async deleteImages(publicIds: string[]) {
+		await Promise.all(
+			Array.from(new Set(publicIds)).map((publicId) =>
+				this.storageService.deleteImageAsset(publicId),
+			),
+		);
+	}
+
 	private buildNutritionCalculationInput(
 		currentRecipe: RecipeForNutritionCalculation,
 		data: UpdateRecipeDto,
@@ -197,8 +237,8 @@ export class RecipesService {
 			steps: section.steps.map((step) => ({
 				description: step.description,
 				position: step.position,
-				...(step.stepTime !== null ? { stepTime: step.stepTime } : {}),
-				...(step.mediaUrl !== null ? { mediaUrl: step.mediaUrl } : {}),
+				...(step.imageUrl !== null ? { imageUrl: step.imageUrl } : {}),
+				...(step.imagePublicId !== null ? { imagePublicId: step.imagePublicId } : {}),
 			})),
 		}));
 	}

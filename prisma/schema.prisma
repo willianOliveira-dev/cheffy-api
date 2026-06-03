@@ -278,11 +278,11 @@ model RecipeSectionIngredient {
 }
 
 model PreparationStep {
-  id          String  @id @default(uuid())
-  description String
-  position    Int     @default(0)
-  stepTime    Int?
-  mediaUrl    String?
+  id            String  @id @default(uuid())
+  description   String
+  position      Int     @default(0)
+  imageUrl      String?
+  imagePublicId String?
 
   sectionId String
   section   RecipeSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)

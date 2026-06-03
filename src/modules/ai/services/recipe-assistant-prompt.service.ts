@@ -102,7 +102,6 @@ export class RecipeAssistantPromptService {
 				steps: section.steps.map((step) => ({
 					position: step.position,
 					description: step.description,
-					stepTime: step.stepTime,
 				})),
 			})),
 			nutritionLabel: recipe.nutritionLabel,

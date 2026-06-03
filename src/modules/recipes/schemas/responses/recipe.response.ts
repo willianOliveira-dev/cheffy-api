@@ -112,8 +112,8 @@ export const preparationStepResponseSchema = z
 		id: z.string().uuid(),
 		description: z.string(),
 		position: z.number(),
-		stepTime: z.number().nullable(),
-		mediaUrl: z.string().nullable(),
+		imageUrl: z.string().nullable(),
+		imagePublicId: z.string().nullable(),
 		sectionId: z.string().uuid(),
 	})
 	.openapi('PreparationStep');

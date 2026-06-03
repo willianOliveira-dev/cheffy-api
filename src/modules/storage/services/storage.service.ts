@@ -10,6 +10,7 @@ const targetFolders = {
 	recipes: 'cheffy/recipes',
 	ingredients: 'cheffy/ingredients',
 	categories: 'cheffy/categories',
+	preparationSteps: 'cheffy/preparation-steps',
 } satisfies Record<StorageTarget, string>;
 
 export class StorageService {

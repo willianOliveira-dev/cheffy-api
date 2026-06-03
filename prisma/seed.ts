@@ -37,7 +37,6 @@ type RecipeIngredient = {
 
 type SeedStep = {
 	description: string;
-	stepTime: number;
 };
 
 type SeedRecipeSection = {
@@ -438,15 +437,12 @@ const pizzaSections: SeedRecipeSection[] = [
 		steps: [
 			{
 				description: 'Misture farinha, água, fermento, sal e azeite até formar uma massa uniforme.',
-				stepTime: 8,
 			},
 			{
 				description: 'Sove a massa até ficar lisa e deixe descansar coberta até ganhar volume.',
-				stepTime: 25,
 			},
 			{
 				description: 'Abra a massa em uma forma untada, deixando a borda um pouco mais alta.',
-				stepTime: 5,
 			},
 		],
 	},
@@ -462,7 +458,6 @@ const pizzaSections: SeedRecipeSection[] = [
 			{
 				description:
 					'Aqueça o azeite, perfume com alho e misture o molho de tomate com manjericão.',
-				stepTime: 7,
 			},
 		],
 	},
@@ -478,12 +473,10 @@ const pizzaSections: SeedRecipeSection[] = [
 			{
 				description:
 					'Espalhe o molho sobre a massa, cubra com muçarela, tomate e um fio de azeite.',
-				stepTime: 5,
 			},
 			{
 				description:
 					'Asse em forno bem quente até a massa dourar e finalize com manjericão fresco.',
-				stepTime: 10,
 			},
 		],
 	},
@@ -1106,7 +1099,6 @@ async function main() {
 				steps: section.steps.map((step, index) => ({
 					description: step.description,
 					position: index + 1,
-					stepTime: step.stepTime,
 				})),
 			})),
 		});
@@ -1287,7 +1279,6 @@ function buildSections(recipe: SeedRecipe, ingredientByName: Map<string, string>
 			create: section.steps.map((step, index) => ({
 				description: step.description,
 				position: index + 1,
-				stepTime: step.stepTime,
 			})),
 		},
 	}));
@@ -1335,41 +1326,16 @@ function buildDescription(title: string, _recipeTags: string[]) {
 	);
 }
 
-function buildSteps(title: string, totalTime: number): SeedStep[] {
+function buildSteps(title: string, _totalTime: number): SeedStep[] {
 	const descriptions = [
 		'Separe e pese todos os ingredientes antes de começar.',
 		'Prepare a base da receita em fogo médio, refogando ou misturando os ingredientes principais conforme o tipo de prato.',
 		'Cozinhe até atingir textura, ponto e aroma característicos, ajustando sal e temperos aos poucos.',
 		`Finalize e sirva ${title.toLowerCase()} ainda no melhor ponto de consumo.`,
 	];
-	const stepTimes = distributeStepTimes(totalTime, descriptions.length);
-	return descriptions.map((description, index) => ({
+	return descriptions.map((description) => ({
 		description,
-		stepTime: stepTimes[index] ?? 1,
 	}));
-}
-
-function distributeStepTimes(totalTime: number, stepCount: number) {
-	const weights = [0.12, 0.34, 0.46, 0.08];
-	const baseTimes = weights
-		.slice(0, stepCount)
-		.map((weight) => Math.max(1, Math.floor(totalTime * weight)));
-	let remaining = totalTime - baseTimes.reduce((sum, time) => sum + time, 0);
-	let index = 0;
-	while (remaining > 0) {
-		baseTimes[index % baseTimes.length]++;
-		remaining--;
-		index++;
-	}
-	while (remaining < 0) {
-		const currentIndex = baseTimes.length - 1 - (index % baseTimes.length);
-		if (baseTimes[currentIndex] > 1) {
-			baseTimes[currentIndex]--;
-			remaining++;
-		}
-		index++;
-	}
-	return baseTimes;
 }
 
 function formatIngredientText(name: string, grams: number) {

@@ -1,5 +1,6 @@
-import { DifficultyLevel, MeasurementUnit, YieldUnit } from '@prisma/client';
+import { DifficultyLevel, YieldUnit } from '@prisma/client';
 import { z } from 'zod';
+import { sectionIngredientQuantitySchema } from './recipe-ingredient-quantity.schema.js';
 
 const preparationStepSchema = z.object({
 	description: z
@@ -9,35 +10,18 @@ const preparationStepSchema = z.object({
 		.number({ message: 'A posição do passo deve ser um número' })
 		.int('A posição do passo deve ser um número inteiro')
 		.nonnegative('A posição do passo não pode ser negativa'),
-	stepTime: z
-		.number({ message: 'O tempo do passo deve ser um número' })
-		.int('O tempo do passo deve ser um número inteiro')
-		.positive('O tempo do passo deve ser maior que zero')
-		.optional(),
-	mediaUrl: z
-		.string({ message: 'A URL da mídia deve ser um texto' })
-		.url('A URL da mídia informada é inválida')
-		.optional(),
+	imageUrl: z
+		.string({ message: 'A URL da imagem deve ser um texto' })
+		.url('A URL da imagem informada é inválida')
+		.optional()
+		.nullable(),
+	imagePublicId: z
+		.string({ message: 'O public ID da imagem deve ser um texto' })
+		.optional()
+		.nullable(),
 });
 
-const sectionIngredientSchema = z.object({
-	displayText: z
-		.string({ message: 'O texto de exibição deve ser um texto' })
-		.min(1, 'O texto de exibição é obrigatório'),
-	quantity: z.string({ message: 'A quantidade deve ser um texto' }).optional(),
-	quantityInGrams: z
-		.number({ message: 'A quantidade em gramas deve ser um número' })
-		.positive('A quantidade em gramas deve ser maior que zero'),
-	unit: z.enum(MeasurementUnit, { message: 'A unidade de medida é inválida' }).default('UNIT'),
-	notes: z.string({ message: 'As notas devem ser um texto' }).optional(),
-	position: z
-		.number({ message: 'A posição do ingrediente deve ser um número' })
-		.int('A posição do ingrediente deve ser um número inteiro')
-		.nonnegative('A posição do ingrediente não pode ser negativa'),
-	ingredientId: z
-		.string({ message: 'O ID do ingrediente base deve ser um texto' })
-		.uuid('O ID do ingrediente base fornecido é inválido'),
-});
+const sectionIngredientSchema = sectionIngredientQuantitySchema;
 
 const recipeSectionSchema = z.object({
 	title: z

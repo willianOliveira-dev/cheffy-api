@@ -92,8 +92,8 @@ export class RecipesRepository {
 							create: section.steps.map((step) => ({
 								description: step.description,
 								position: step.position,
-								stepTime: step.stepTime ?? null,
-								mediaUrl: step.mediaUrl ?? null,
+								imageUrl: step.imageUrl ?? null,
+								imagePublicId: step.imagePublicId ?? null,
 							})),
 						},
 					})),
@@ -535,8 +535,8 @@ export class RecipesRepository {
 						create: section.steps.map((step) => ({
 							description: step.description,
 							position: step.position,
-							stepTime: step.stepTime ?? null,
-							mediaUrl: step.mediaUrl ?? null,
+							imageUrl: step.imageUrl ?? null,
+							imagePublicId: step.imagePublicId ?? null,
 						})),
 					},
 				})),
