@@ -1,4 +1,4 @@
-import type { Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/db/prisma.js';
 import { BadRequestError } from '@/shared/errors/app.error.js';
 import { generateUniqueSlug } from '@/shared/utils/slug.util.js';
@@ -7,6 +7,10 @@ import {
 	type FindAllRecipesDto,
 	findAllRecipesDtoSchema,
 } from '../schemas/dtos/find-all-recipes.dto.js';
+import {
+	type FindMyRecipesDto,
+	findMyRecipesDtoSchema,
+} from '../schemas/dtos/find-my-recipes.dto.js';
 import type { UpdateRecipeDto } from '../schemas/dtos/update-recipe.dto.js';
 
 export type RecipeViewContext = {
@@ -17,6 +21,27 @@ export type RecipeViewContext = {
 };
 
 const RECIPE_VIEW_INTERVAL_IN_MS = 24 * 60 * 60 * 1000;
+
+const recipeDetailInclude = Prisma.validator<Prisma.RecipeInclude>()({
+	sections: {
+		include: {
+			ingredients: {
+				include: { ingredient: true },
+			},
+			steps: true,
+		},
+	},
+	author: { select: { id: true, name: true } },
+	category: true,
+	tags: { include: { tag: true } },
+	nutritionLabel: true,
+});
+
+const recipeSummaryInclude = Prisma.validator<Prisma.RecipeInclude>()({
+	author: { select: { id: true, name: true } },
+	category: { select: { id: true, name: true, slug: true } },
+	tags: { include: { tag: { select: { name: true, slug: true } } } },
+});
 
 export class RecipesRepository {
 	async create(
@@ -39,6 +64,10 @@ export class RecipesRepository {
 				yieldAmount: dto.yieldAmount,
 				yieldUnit: dto.yieldUnit,
 				difficulty: dto.difficulty,
+				isPublished: false,
+				isFeatured: false,
+				views: 0,
+				totalFavorites: 0,
 				authorId,
 				categoryId: dto.categoryId,
 				sections: {
@@ -91,22 +120,9 @@ export class RecipesRepository {
 		});
 	}
 	async findById(id: string, viewContext?: RecipeViewContext) {
-		const recipe = await prisma.recipe.findUnique({
-			where: { id },
-			include: {
-				sections: {
-					include: {
-						ingredients: {
-							include: { ingredient: true },
-						},
-						steps: true,
-					},
-				},
-				author: { select: { id: true, name: true } },
-				category: true,
-				tags: { include: { tag: true } },
-				nutritionLabel: true,
-			},
+		const recipe = await prisma.recipe.findFirst({
+			where: { id, deletedAt: null, isPublished: true },
+			include: recipeDetailInclude,
 		});
 
 		if (!recipe) return null;
@@ -120,22 +136,9 @@ export class RecipesRepository {
 	}
 
 	async findBySlug(slug: string, viewContext?: RecipeViewContext) {
-		const recipe = await prisma.recipe.findUnique({
-			where: { slug },
-			include: {
-				sections: {
-					include: {
-						ingredients: {
-							include: { ingredient: true },
-						},
-						steps: true,
-					},
-				},
-				author: { select: { id: true, name: true } },
-				category: true,
-				tags: { include: { tag: true } },
-				nutritionLabel: true,
-			},
+		const recipe = await prisma.recipe.findFirst({
+			where: { slug, deletedAt: null, isPublished: true },
+			include: recipeDetailInclude,
 		});
 
 		if (!recipe) return null;
@@ -146,6 +149,19 @@ export class RecipesRepository {
 		]);
 
 		return { ...recipe, views: updatedViews ?? recipe.views, isFavorited };
+	}
+
+	async findByIdForAuthor(id: string, authorId: string) {
+		const recipe = await prisma.recipe.findFirst({
+			where: { id, authorId, deletedAt: null },
+			include: recipeDetailInclude,
+		});
+
+		if (!recipe) return null;
+
+		const isFavorited = await this.isFavorited(recipe.id, authorId);
+
+		return { ...recipe, isFavorited };
 	}
 
 	async findAll(options: FindAllRecipesDto, userId?: string) {
@@ -159,6 +175,7 @@ export class RecipesRepository {
 
 		const where: Prisma.RecipeWhereInput = {
 			deletedAt: null,
+			isPublished: true,
 		};
 
 		if (opts.categoryId) {
@@ -200,11 +217,7 @@ export class RecipesRepository {
 				orderBy,
 				skip,
 				take: opts.limit,
-				include: {
-					author: { select: { id: true, name: true } },
-					category: { select: { id: true, name: true, slug: true } },
-					tags: { include: { tag: { select: { name: true, slug: true } } } },
-				},
+				include: recipeSummaryInclude,
 			}),
 			prisma.recipe.count({ where }),
 		]);
@@ -222,6 +235,68 @@ export class RecipesRepository {
 		});
 
 		const favoritedIds = new Set(favorites.map((f) => f.recipeId));
+
+		return {
+			items: recipes.map((recipe) => ({
+				...recipe,
+				isFavorited: favoritedIds.has(recipe.id),
+			})),
+			total,
+		};
+	}
+
+	async findAllByAuthor(authorId: string, options: FindMyRecipesDto) {
+		const parseResult = findMyRecipesDtoSchema.safeParse(options);
+
+		if (!parseResult.success) {
+			throw new BadRequestError(parseResult.error.message);
+		}
+
+		const opts = parseResult.data;
+		const where: Prisma.RecipeWhereInput = {
+			authorId,
+			deletedAt: null,
+		};
+
+		if (opts.isPublished !== undefined) {
+			where.isPublished = opts.isPublished === 'true';
+		}
+
+		if (opts.search) {
+			where.OR = [
+				{ title: { contains: opts.search, mode: 'insensitive' } },
+				{ description: { contains: opts.search, mode: 'insensitive' } },
+			];
+		}
+
+		const skip = (opts.page - 1) * opts.limit;
+		const orderBy: Prisma.RecipeOrderByWithRelationInput =
+			opts.orderBy === 'oldest' ? { createdAt: 'asc' } : { createdAt: 'desc' };
+
+		const [recipes, total] = await Promise.all([
+			prisma.recipe.findMany({
+				where,
+				orderBy,
+				skip,
+				take: opts.limit,
+				include: recipeSummaryInclude,
+			}),
+			prisma.recipe.count({ where }),
+		]);
+
+		if (recipes.length === 0) {
+			return { items: recipes, total };
+		}
+
+		const favorites = await prisma.favorite.findMany({
+			where: {
+				userId: authorId,
+				recipeId: { in: recipes.map((recipe) => recipe.id) },
+			},
+			select: { recipeId: true },
+		});
+
+		const favoritedIds = new Set(favorites.map((favorite) => favorite.recipeId));
 
 		return {
 			items: recipes.map((recipe) => ({
@@ -281,7 +356,7 @@ export class RecipesRepository {
 	async favorite(recipeId: string, userId: string) {
 		return await prisma.$transaction(async (tx) => {
 			const recipe = await tx.recipe.findFirst({
-				where: { id: recipeId, deletedAt: null },
+				where: { id: recipeId, deletedAt: null, isPublished: true },
 				select: { id: true },
 			});
 
@@ -307,20 +382,7 @@ export class RecipesRepository {
 			return await tx.recipe.update({
 				where: { id: recipeId },
 				data: { totalFavorites },
-				include: {
-					sections: {
-						include: {
-							ingredients: {
-								include: { ingredient: true },
-							},
-							steps: true,
-						},
-					},
-					author: { select: { id: true, name: true } },
-					category: true,
-					tags: { include: { tag: true } },
-					nutritionLabel: true,
-				},
+				include: recipeDetailInclude,
 			});
 		});
 	}
@@ -328,7 +390,7 @@ export class RecipesRepository {
 	async unfavorite(recipeId: string, userId: string) {
 		return await prisma.$transaction(async (tx) => {
 			const recipe = await tx.recipe.findFirst({
-				where: { id: recipeId, deletedAt: null },
+				where: { id: recipeId, deletedAt: null, isPublished: true },
 				select: { id: true },
 			});
 
@@ -354,20 +416,7 @@ export class RecipesRepository {
 			return await tx.recipe.update({
 				where: { id: recipeId },
 				data: { totalFavorites },
-				include: {
-					sections: {
-						include: {
-							ingredients: {
-								include: { ingredient: true },
-							},
-							steps: true,
-						},
-					},
-					author: { select: { id: true, name: true } },
-					category: true,
-					tags: { include: { tag: true } },
-					nutritionLabel: true,
-				},
+				include: recipeDetailInclude,
 			});
 		});
 	}

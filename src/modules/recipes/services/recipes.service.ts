@@ -6,6 +6,8 @@ import type { RecipesRepository, RecipeViewContext } from '../repositories/recip
 import type { CreateRecipeDto } from '../schemas/dtos/create-recipe.dto.js';
 import type { FindAllRecipesDto } from '../schemas/dtos/find-all-recipes.dto.js';
 import { findAllRecipesDtoSchema } from '../schemas/dtos/find-all-recipes.dto.js';
+import type { FindMyRecipesDto } from '../schemas/dtos/find-my-recipes.dto.js';
+import { findMyRecipesDtoSchema } from '../schemas/dtos/find-my-recipes.dto.js';
 import type { UpdateRecipeDto } from '../schemas/dtos/update-recipe.dto.js';
 import type { recipeSummaryResponseSchema } from '../schemas/responses/recipe.response.js';
 import type { NutritionCalculatorService } from './nutrition-calculator.service.js';
@@ -47,6 +49,15 @@ export class RecipesService {
 		return recipe;
 	}
 
+	async getOwnById(
+		id: string,
+		authorId: string,
+	): Promise<NonNullable<Awaited<ReturnType<RecipesRepository['findByIdForAuthor']>>>> {
+		const recipe = await this.repository.findByIdForAuthor(id, authorId);
+		if (!recipe) throw new NotFoundError('Receita');
+		return recipe;
+	}
+
 	async getAll(
 		dto: FindAllRecipesDto,
 		userId?: string,
@@ -73,11 +84,38 @@ export class RecipesService {
 		};
 	}
 
-	async update(
+	async getOwnRecipes(
+		authorId: string,
+		dto: FindMyRecipesDto,
+	): Promise<PaginatedResponse<z.infer<typeof recipeSummaryResponseSchema>>> {
+		const parseResult = findMyRecipesDtoSchema.safeParse(dto);
+		if (!parseResult.success) {
+			throw new BadRequestError(parseResult.error.message);
+		}
+		const opts = parseResult.data;
+
+		const { items, total } = await this.repository.findAllByAuthor(authorId, opts);
+		const totalPages = Math.ceil(total / opts.limit);
+
+		return {
+			items,
+			meta: {
+				page: opts.page,
+				pageSize: opts.limit,
+				totalItems: total,
+				totalPages,
+				hasNext: opts.page < totalPages,
+				hasPrevious: opts.page > 1,
+			},
+		};
+	}
+
+	async updateOwn(
 		id: string,
+		authorId: string,
 		data: UpdateRecipeDto,
 	): Promise<Awaited<ReturnType<RecipesRepository['update']>>> {
-		const currentRecipe = await this.getById(id);
+		const currentRecipe = await this.getOwnById(id, authorId);
 		let nutritionData = null;
 		if (data.sections || data.yieldAmount !== undefined || data.yieldUnit !== undefined) {
 			nutritionData = await this.nutritionCalculator.calculateForRecipe(
@@ -90,8 +128,11 @@ export class RecipesService {
 		return updatedRecipe;
 	}
 
-	async delete(id: string): Promise<Awaited<ReturnType<RecipesRepository['delete']>>> {
-		const recipe = await this.getById(id);
+	async deleteOwn(
+		id: string,
+		authorId: string,
+	): Promise<Awaited<ReturnType<RecipesRepository['delete']>>> {
+		const recipe = await this.getOwnById(id, authorId);
 		if (recipe.imagePublicId) {
 			await this.storageService.deleteImageAsset(recipe.imagePublicId);
 		}

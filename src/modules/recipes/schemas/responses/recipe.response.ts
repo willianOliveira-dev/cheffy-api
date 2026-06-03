@@ -165,19 +165,28 @@ export const recipeSummaryResponseSchema = z
 
 export const recipeListResponseSchema = z.array(recipeSummaryResponseSchema).openapi('RecipeList');
 
+const paginationMetaResponseSchema = z.object({
+	page: z.number(),
+	pageSize: z.number(),
+	totalItems: z.number(),
+	totalPages: z.number(),
+	hasNext: z.boolean(),
+	hasPrevious: z.boolean(),
+});
+
 export const paginatedRecipeListResponseSchema = z
 	.object({
 		items: z.array(recipeSummaryResponseSchema),
-		meta: z.object({
-			page: z.number(),
-			pageSize: z.number(),
-			totalItems: z.number(),
-			totalPages: z.number(),
-			hasNext: z.boolean(),
-			hasPrevious: z.boolean(),
-		}),
+		meta: paginationMetaResponseSchema,
 	})
 	.openapi('PaginatedRecipeList');
+
+export const myRecipesResponseSchema = z
+	.object({
+		items: z.array(recipeSummaryResponseSchema),
+		meta: paginationMetaResponseSchema,
+	})
+	.openapi('MyRecipes');
 
 export const recipeResponseSchema = z
 	.object({

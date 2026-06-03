@@ -2,6 +2,7 @@ import { prisma } from '@/lib/db/prisma.js';
 import { type RecipeViewContext, RecipesRepository } from '../repositories/recipes.repository.js';
 import type { CreateRecipeDto } from '../schemas/dtos/create-recipe.dto.js';
 import type { FindAllRecipesDto } from '../schemas/dtos/find-all-recipes.dto.js';
+import type { FindMyRecipesDto } from '../schemas/dtos/find-my-recipes.dto.js';
 import type { UpdateRecipeDto } from '../schemas/dtos/update-recipe.dto.js';
 import { NutritionCalculatorService } from '../services/nutrition-calculator.service.js';
 import { RecipesService } from '../services/recipes.service.js';
@@ -35,12 +36,30 @@ export class RecipesController {
 		return await this.service.getBySlug(slug, viewContext);
 	}
 
-	async update(id: string, data: UpdateRecipeDto): ReturnType<RecipesService['update']> {
-		return await this.service.update(id, data);
+	async getOwnRecipes(
+		userId: string,
+		query: FindMyRecipesDto,
+	): ReturnType<RecipesService['getOwnRecipes']> {
+		return await this.service.getOwnRecipes(userId, query);
 	}
 
-	async delete(id: string): ReturnType<RecipesService['delete']> {
-		return await this.service.delete(id);
+	async getOwnById(
+		id: string,
+		userId: string,
+	): ReturnType<RecipesService['getOwnById']> {
+		return await this.service.getOwnById(id, userId);
+	}
+
+	async update(
+		id: string,
+		data: UpdateRecipeDto,
+		userId: string,
+	): ReturnType<RecipesService['updateOwn']> {
+		return await this.service.updateOwn(id, userId, data);
+	}
+
+	async delete(id: string, userId: string): ReturnType<RecipesService['deleteOwn']> {
+		return await this.service.deleteOwn(id, userId);
 	}
 
 	async favorite(id: string, userId: string): ReturnType<RecipesService['favorite']> {
