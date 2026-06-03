@@ -5,6 +5,8 @@ import { localization } from 'better-auth-localization';
 import { env } from '@/config/env.js';
 import { prisma } from '../db/prisma.js';
 
+const isProduction = env.NODE_ENV === 'production';
+
 export const auth = betterAuth({
     baseURL: env.BETTER_AUTH_URL,
     secret: env.BETTER_AUTH_SECRET,
@@ -16,12 +18,12 @@ export const auth = betterAuth({
     advanced: {
         trustedProxyHeaders: true,
         defaultCookieAttributes: {
-            sameSite: 'none',
-            secure: true,
-            partitioned: true,
+            sameSite: isProduction ? 'none' : 'lax',
+            secure: isProduction,
+            ...(isProduction ? { partitioned: true } : {}),
         },
-        disableOriginCheck: env.NODE_ENV !== 'production',
-        disableCSRFCheck: env.NODE_ENV !== 'production',
+        disableOriginCheck: !isProduction,
+        disableCSRFCheck: !isProduction,
     },
     socialProviders: {
         google: {
