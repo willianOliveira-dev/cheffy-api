@@ -19,7 +19,7 @@ export class RecipeAssistantStreamService {
 		dto: AskRecipeAssistantDto,
 		user: RecipeAssistantUserContext,
 	): AsyncGenerator<string> {
-		const recipe = await this.repository.findRecipeContextById(recipeId);
+		const recipe = await this.repository.findRecipeContextById(recipeId, user.id);
 		if (!recipe) throw new NotFoundError('Receita');
 
 		const messages = this.promptService.buildMessages(recipe, dto, user);

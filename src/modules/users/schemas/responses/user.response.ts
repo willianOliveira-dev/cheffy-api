@@ -3,7 +3,7 @@ import { paginatedRecipeListResponseSchema } from '@/modules/recipes/schemas/res
 
 export const userResponseSchema = z
 	.object({
-		id: z.string().uuid(),
+		id: z.string(),
 		name: z.string(),
 		email: z.string().email(),
 		emailVerified: z.boolean(),

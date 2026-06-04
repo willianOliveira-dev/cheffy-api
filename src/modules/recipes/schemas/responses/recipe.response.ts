@@ -2,7 +2,7 @@ import { z } from '@hono/zod-openapi';
 import { DifficultyLevel, MeasurementUnit, YieldUnit } from '@prisma/client';
 
 const authorSchema = z.object({
-	id: z.string().uuid(),
+	id: z.string(),
 	name: z.string(),
 });
 
@@ -85,6 +85,19 @@ const nutritionLabelFields = {
 	isApproximate: z.boolean(),
 };
 
+const ingredientNutritionPer100gSchema = z.object({
+	energyKcalPer100g: z.number(),
+	carbohydratesPer100g: z.number(),
+	totalSugarsPer100g: z.number(),
+	addedSugarsPer100g: z.number(),
+	proteinPer100g: z.number(),
+	totalFatPer100g: z.number(),
+	saturatedFatPer100g: z.number(),
+	transFatPer100g: z.number(),
+	fiberPer100g: z.number(),
+	sodiumMgPer100g: z.number(),
+});
+
 export const recipeSectionIngredientResponseSchema = z
 	.object({
 		id: z.string().uuid(),
@@ -103,6 +116,7 @@ export const recipeSectionIngredientResponseSchema = z
 				slug: z.string(),
 				imageUrl: z.string().nullable(),
 				category: z.string().nullable(),
+				nutrition: ingredientNutritionPer100gSchema.nullable().optional(),
 			})
 			.optional(),
 	})
@@ -150,7 +164,7 @@ const baseRecipeSchema = {
 		.union([z.string(), z.date()])
 		.nullable()
 		.openapi({ type: 'string', format: 'date-time' }),
-	authorId: z.string().uuid(),
+	authorId: z.string(),
 	categoryId: z.string().uuid(),
 	isFavorited: z.boolean().optional(),
 };

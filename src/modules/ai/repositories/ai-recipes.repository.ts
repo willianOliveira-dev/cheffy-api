@@ -97,11 +97,12 @@ export type RecipeAssistantRecipe = Prisma.RecipeGetPayload<{
 export class AiRecipesRepository {
 	constructor(private readonly db: PrismaClient = prisma) {}
 
-	async findRecipeContextById(id: string): Promise<RecipeAssistantRecipe | null> {
+	async findRecipeContextById(id: string, userId: string): Promise<RecipeAssistantRecipe | null> {
 		return await this.db.recipe.findFirst({
 			where: {
 				id,
 				deletedAt: null,
+				OR: [{ isPublished: true }, { authorId: userId }],
 			},
 			select: recipeAssistantSelect,
 		});

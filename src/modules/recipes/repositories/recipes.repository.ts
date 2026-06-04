@@ -26,7 +26,13 @@ const recipeDetailInclude = Prisma.validator<Prisma.RecipeInclude>()({
 	sections: {
 		include: {
 			ingredients: {
-				include: { ingredient: true },
+				include: {
+					ingredient: {
+						include: {
+							nutrition: true,
+						},
+					},
+				},
 			},
 			steps: true,
 		},
@@ -356,7 +362,7 @@ export class RecipesRepository {
 	async favorite(recipeId: string, userId: string) {
 		return await prisma.$transaction(async (tx) => {
 			const recipe = await tx.recipe.findFirst({
-				where: { id: recipeId, deletedAt: null, isPublished: true },
+				where: this.buildVisibleRecipeWhere(recipeId, userId),
 				select: { id: true },
 			});
 
@@ -390,7 +396,7 @@ export class RecipesRepository {
 	async unfavorite(recipeId: string, userId: string) {
 		return await prisma.$transaction(async (tx) => {
 			const recipe = await tx.recipe.findFirst({
-				where: { id: recipeId, deletedAt: null, isPublished: true },
+				where: this.buildVisibleRecipeWhere(recipeId, userId),
 				select: { id: true },
 			});
 
@@ -419,6 +425,14 @@ export class RecipesRepository {
 				include: recipeDetailInclude,
 			});
 		});
+	}
+
+	private buildVisibleRecipeWhere(recipeId: string, userId: string): Prisma.RecipeWhereInput {
+		return {
+			id: recipeId,
+			deletedAt: null,
+			OR: [{ isPublished: true }, { authorId: userId }],
+		};
 	}
 
 	private async isFavorited(recipeId: string, userId?: string): Promise<boolean> {

@@ -15,7 +15,7 @@ export class RecipeAssistantService {
 	) {}
 
 	async ask(recipeId: string, dto: AskRecipeAssistantDto, user: RecipeAssistantUserContext) {
-		const recipe = await this.repository.findRecipeContextById(recipeId);
+		const recipe = await this.repository.findRecipeContextById(recipeId, user.id);
 		if (!recipe) throw new NotFoundError('Receita');
 
 		const messages = this.promptService.buildMessages(recipe, dto, user);
